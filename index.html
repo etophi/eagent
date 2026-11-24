@@ -18,7 +18,9 @@
   <link id="pwa-manifest" rel="manifest" />
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Pustaka Konversi .DOCX (Mammoth) & .XLSX/.XLS (SheetJS) di Browser -->
+  <!-- Pustaka Konversi .PDF (PDF.js), OCR PDF Scan (Tesseract.js), .DOCX (Mammoth) & .XLSX/.XLS (SheetJS) -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- Google Identity Services (Opsional bila Google Client ID diisi) -->
@@ -35,6 +37,9 @@
         }
       }
     };
+    if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    }
   </script>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -59,7 +64,7 @@
       <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center font-bold text-white text-sm shrink-0">E</div>
       <div class="truncate">
         <div class="font-semibold text-sm leading-tight truncate">eto agentAi</div>
-        <div id="header-subtitle" class="text-[11px] text-emerald-400 truncate">Auto-Agent + MarkItDown</div>
+        <div id="header-subtitle" class="text-[11px] text-emerald-400 truncate">Auto-Agent + MarkItDown OCR</div>
       </div>
     </div>
 
@@ -111,10 +116,10 @@
 
         <div class="p-2.5 rounded-xl bg-slate-850 border border-slate-800 space-y-1">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-semibold text-cyan-400">MarkItDown Parser</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/60">DOCX &amp; XLSX</span>
+            <span class="text-[11px] font-semibold text-cyan-400">MarkItDown + OCR</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/60">PDF Scan</span>
           </div>
-          <p class="text-[11px] text-slate-400 leading-snug">Mengonversi .DOCX, .XLSX/.XLS, CSV, JSON, HTML, TXT, dan MD menjadi Markdown rapi di browser.</p>
+          <p class="text-[11px] text-slate-400 leading-snug">Membaca PDF teks &amp; PDF scan (OCR), .DOCX, .XLSX/.XLS, CSV, JSON, HTML, TXT, dan MD.</p>
         </div>
       </div>
 
@@ -126,6 +131,11 @@
         <button onclick="openModal('modal-pwa')" class="w-full h-9 rounded-xl bg-emerald-950/80 border border-emerald-700/60 hover:bg-emerald-900/60 text-xs font-medium text-emerald-300">
           Pasang ke Layar Utama HP
         </button>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="exportBackupJson()" class="h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-cyan-300">Cadangkan .JSON</button>
+          <button onclick="document.getElementById('restore-json-input').click()" class="h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-emerald-300">Pulihkan .JSON</button>
+          <input id="restore-json-input" type="file" accept=".json,application/json" class="hidden" onchange="importBackupJson(event)" />
+        </div>
         <div class="grid grid-cols-2 gap-2">
           <button onclick="exportChat()" class="h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200">Ekspor .MD</button>
           <button onclick="clearHistory()" class="h-9 rounded-xl bg-slate-800 hover:bg-rose-900/50 text-xs text-rose-300">Hapus Riwayat</button>
@@ -151,9 +161,9 @@
       <div id="chat-container" class="flex-1 overflow-y-auto px-3 py-4 space-y-4">
         <div id="welcome-screen" class="max-w-xl mx-auto text-center py-8 space-y-4">
           <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center text-2xl font-bold text-white shadow-lg">E</div>
-          <h1 class="text-xl font-bold">eto agentAi + MarkItDown</h1>
+          <h1 class="text-xl font-bold">eto agentAi + MarkItDown OCR</h1>
           <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
-            Satu antarmuka untuk <strong>Gemini, ChatGPT, Claude, DeepSeek, dan Perplexity</strong>. Login akun Anda, hubungkan API Key Gemini atau model lain, dan unggah dokumen untuk dikonversi ke Markdown.
+            Satu antarmuka untuk <strong>Gemini, ChatGPT, Claude, DeepSeek, dan Perplexity</strong>. Mendukung baca <strong>.PDF teks &amp; .PDF scan (OCR)</strong>, <strong>.DOCX</strong>, dan <strong>.XLSX</strong> langsung di browser.
           </p>
           <div class="flex flex-wrap justify-center gap-2">
             <button onclick="openModal('modal-login')" class="px-4 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold">
@@ -201,11 +211,11 @@
       <!-- Kotak Input -->
       <div class="p-3 border-t border-slate-800 bg-slate-900/80 backdrop-blur shrink-0">
         <form onsubmit="handleSend(event)" class="max-w-3xl mx-auto flex items-end gap-2">
-          <input id="file-upload" type="file" accept=".docx,.xlsx,.xls,.md,.txt,.csv,.json,.xml,.html,.htm,.log,.yaml,.yml" class="hidden" onchange="handleFileSelect(event)" />
-          <button type="button" onclick="document.getElementById('file-upload').click()" title="Konversi .DOCX, .XLSX, CSV, JSON, MD ke Markdown" class="h-11 w-11 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-400 flex items-center justify-center shrink-0">
+          <input id="file-upload" type="file" accept=".pdf,.docx,.xlsx,.xls,.md,.txt,.csv,.json,.xml,.html,.htm,.log,.yaml,.yml" class="hidden" onchange="handleFileSelect(event)" />
+          <button type="button" onclick="document.getElementById('file-upload').click()" title="Konversi .PDF (teks & scan OCR), .DOCX, .XLSX, CSV, JSON, MD ke Markdown" class="h-11 w-11 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-400 flex items-center justify-center shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
           </button>
-          <textarea id="prompt-input" rows="1" placeholder="Ketik pesan atau lampirkan .docx / .xlsx..." class="flex-1 bg-slate-850 border border-slate-700 focus:border-indigo-500 focus:outline-none rounded-2xl px-3.5 py-2.5 text-base text-slate-100 placeholder-slate-500 resize-none max-h-32" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();handleSend(event);}"></textarea>
+          <textarea id="prompt-input" rows="1" placeholder="Ketik pesan atau lampirkan .pdf (scan/teks), .docx, .xlsx..." class="flex-1 bg-slate-850 border border-slate-700 focus:border-indigo-500 focus:outline-none rounded-2xl px-3.5 py-2.5 text-base text-slate-100 placeholder-slate-500 resize-none max-h-32" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();handleSend(event);}"></textarea>
           <button type="submit" class="h-11 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold text-sm shrink-0">
             Kirim
           </button>
@@ -467,7 +477,7 @@
       document.getElementById('btn-install-pwa').classList.add('hidden');
     }
 
-    // MarkItDown converter (.docx, .xlsx/.xls, .csv, .json, .html, .txt, .md)
+    // MarkItDown converter (.pdf teks & scan OCR, .docx, .xlsx/.xls, .csv, .json, .html, .txt, .md)
     function rowsToMarkdownTable(rows, maxRows = 30) {
       if (!rows || rows.length === 0) return '';
       const colCount = Math.max(...rows.map(r => r.length));
@@ -514,6 +524,106 @@
       }
     }
 
+    async function ocrCanvasToText(canvas) {
+      if (!window.Tesseract || typeof window.Tesseract.recognize !== 'function') {
+        throw new Error('Pustaka OCR Tesseract.js belum termuat.');
+      }
+      const dataUrl = canvas.toDataURL('image/png');
+      const result = await window.Tesseract.recognize(dataUrl, 'ind+eng', {
+        logger: (m) => {
+          if (m && m.status === 'recognizing text' && typeof m.progress === 'number') {
+            const statusEl = document.getElementById('att-status');
+            if (statusEl) statusEl.textContent = `OCR Scan ${Math.round(m.progress * 100)}%`;
+          }
+        }
+      });
+      return String(result?.data?.text || '').replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    async function pdfArrayBufferToMarkdown(buffer, filename) {
+      if (!window.pdfjsLib || typeof window.pdfjsLib.getDocument !== 'function') {
+        throw new Error('Pustaka PDF.js belum termuat.');
+      }
+      const loadingTask = window.pdfjsLib.getDocument({ data: new Uint8Array(buffer) });
+      const pdf = await loadingTask.promise;
+      const totalPages = pdf.numPages || 0;
+      const maxPagesToRead = Math.min(totalPages, 20);
+      const maxOcrPages = 5;
+      let ocrPagesUsed = 0;
+      let usedOcrAny = false;
+      const pageSections = [];
+      let totalChars = 0;
+      const maxTotalChars = 9000;
+
+      for (let p = 1; p <= maxPagesToRead; p++) {
+        if (totalChars >= maxTotalChars) break;
+        const page = await pdf.getPage(p);
+        const textContent = await page.getTextContent();
+        const items = textContent.items || [];
+        let pageText = '';
+        let lastY = null;
+
+        for (const item of items) {
+          if (typeof item.str !== 'string') continue;
+          const y = Array.isArray(item.transform) ? item.transform[5] : null;
+          if (lastY !== null && y !== null && Math.abs(y - lastY) > 6) {
+            pageText += '\n';
+          } else if (pageText && !pageText.endsWith(' ') && !pageText.endsWith('\n')) {
+            pageText += ' ';
+          }
+          pageText += item.str;
+          if (y !== null) lastY = y;
+        }
+
+        let cleaned = pageText.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+        let pageTag = '';
+
+        // Jika teks sangat sedikit / kosong, anggap halaman scan dan jalankan OCR
+        if (cleaned.length < 15 && ocrPagesUsed < maxOcrPages) {
+          ocrPagesUsed += 1;
+          usedOcrAny = true;
+          const statusEl = document.getElementById('att-status');
+          if (statusEl) statusEl.textContent = `OCR Hal. ${p}...`;
+          const viewport = page.getViewport({ scale: 1.5 });
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.floor(viewport.width));
+          canvas.height = Math.max(1, Math.floor(viewport.height));
+          const ctx = canvas.getContext('2d');
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          const ocrText = await ocrCanvasToText(canvas);
+          canvas.width = 0;
+          canvas.height = 0;
+          if (ocrText) {
+            cleaned = ocrText;
+            pageTag = ' [OCR Scan]';
+          }
+        }
+
+        if (cleaned) {
+          const remaining = maxTotalChars - totalChars;
+          const snippet = cleaned.slice(0, remaining);
+          totalChars += snippet.length;
+          pageSections.push(`## Halaman ${p}${pageTag}\n\n${snippet}`);
+        }
+      }
+
+      const notes = [];
+      if (totalPages > maxPagesToRead) {
+        notes.push(`Membaca ${maxPagesToRead} dari ${totalPages} halaman pertama secara efisien.`);
+      }
+      if (totalPages > maxOcrPages && usedOcrAny) {
+        notes.push(`OCR scan dijalankan maksimal ${maxOcrPages} halaman pertama agar browser tetap ringan.`);
+      }
+      const noteText = notes.length > 0 ? `\n\n_${notes.join(' ')}_` : '';
+
+      const bodyMd = pageSections.length > 0
+        ? pageSections.join('\n\n')
+        : '_(Tidak ada teks terbaca pada PDF maupun hasil OCR.)_';
+
+      const modeLabel = usedOcrAny ? 'MarkItDown PDF + OCR Scan' : 'MarkItDown PDF → MD';
+      return `# ${filename} (${modeLabel}, ${totalPages} Hal.)\n\n${bodyMd}${noteText}`;
+    }
+
     async function docxArrayBufferToMarkdown(buffer, filename) {
       if (typeof mammoth === 'undefined') throw new Error('Pustaka Mammoth.js belum termuat.');
       const htmlResult = await mammoth.convertToHtml({ arrayBuffer: buffer });
@@ -536,6 +646,7 @@
     async function convertFileToMarkItDown(file) {
       const filename = file.name;
       const ext = (filename.split('.').pop() || '').toLowerCase();
+      if (ext === 'pdf') return await pdfArrayBufferToMarkdown(await file.arrayBuffer(), filename);
       if (ext === 'docx') return await docxArrayBufferToMarkdown(await file.arrayBuffer(), filename);
       if (ext === 'xlsx' || ext === 'xls') return xlsxArrayBufferToMarkdown(await file.arrayBuffer(), filename);
 
@@ -565,7 +676,7 @@
 
       document.getElementById('att-filename').textContent = file.name;
       document.getElementById('att-status').textContent = 'Mengonversi...';
-      document.getElementById('att-md-snippet').textContent = 'Memproses dokumen menjadi Markdown terstruktur...';
+      document.getElementById('att-md-snippet').textContent = 'Mengekstrak dokumen (termasuk OCR jika PDF scan)...';
       document.getElementById('attachment-preview').classList.remove('hidden');
 
       try {
@@ -642,6 +753,49 @@
       } catch (e) {}
       refreshAccountUI();
       refreshConnectionBadges();
+    }
+
+    function exportBackupJson() {
+      const payload = {
+        app: 'eto agentAi',
+        exportedAt: new Date().toISOString(),
+        account: state.account,
+        googleClientId: state.googleClientId,
+        models: state.models,
+        keys: state.keys,
+        sessions: state.sessions
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `eto_agentAi_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+    }
+
+    function importBackupJson(e) {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          const data = JSON.parse(ev.target.result || '{}');
+          if (Array.isArray(data.sessions)) state.sessions = data.sessions;
+          if (data.keys && typeof data.keys === 'object') state.keys = data.keys;
+          if (data.models && typeof data.models === 'object') state.models = data.models;
+          if ('account' in data) state.account = data.account;
+          if (typeof data.googleClientId === 'string') state.googleClientId = data.googleClientId;
+          state.currentSessionId = state.sessions[0]?.id || null;
+          saveState();
+          renderBars();
+          renderHistory();
+          renderMessages();
+          alert('Cadangan .JSON berhasil dipulihkan.');
+        } catch (err) {
+          alert('File cadangan .JSON tidak valid.');
+        }
+      };
+      reader.readAsText(file);
     }
 
     function refreshAccountUI() {
@@ -866,7 +1020,7 @@
       state.compareMode = false;
       state.selectedAgent = id;
       document.getElementById('btn-compare')?.classList.remove('bg-indigo-600', 'text-white');
-      document.getElementById('header-subtitle').textContent = id === 'auto' ? 'Auto-Agent + MarkItDown' : 'Agen: ' + AGENTS[id].name;
+      document.getElementById('header-subtitle').textContent = id === 'auto' ? 'Auto-Agent + MarkItDown OCR' : 'Agen: ' + AGENTS[id].name;
       renderBars();
     }
 
@@ -891,7 +1045,7 @@
         document.getElementById('header-subtitle').textContent = 'Mode Bandingkan 5 Agen';
       } else {
         btn?.classList.remove('bg-indigo-600', 'text-white');
-        document.getElementById('header-subtitle').textContent = state.selectedAgent === 'auto' ? 'Auto-Agent + MarkItDown' : 'Agen: ' + AGENTS[state.selectedAgent].name;
+        document.getElementById('header-subtitle').textContent = state.selectedAgent === 'auto' ? 'Auto-Agent + MarkItDown OCR' : 'Agen: ' + AGENTS[state.selectedAgent].name;
       }
       renderBars();
     }
