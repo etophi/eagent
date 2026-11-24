@@ -21,6 +21,8 @@
   <!-- Pustaka Konversi .DOCX (Mammoth) & .XLSX/.XLS (SheetJS) di Browser -->
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Google Identity Services (Opsional bila Google Client ID diisi) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <script>
     tailwind.config = {
@@ -65,11 +67,13 @@
       <button id="btn-install-pwa" onclick="triggerInstallPWA()" class="hidden px-2.5 h-9 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white items-center gap-1">
         <span>Pasang App</span>
       </button>
-      <button onclick="toggleCompareMode()" id="btn-compare" class="px-2.5 h-9 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5">
-        <span>Bandingkan</span>
+      <button onclick="openModal('modal-login')" id="btn-login-header" class="px-2.5 h-9 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 max-w-[130px] truncate">
+        <span id="login-avatar-badge" class="w-5 h-5 rounded-full bg-indigo-600 text-[10px] font-bold flex items-center justify-center text-white shrink-0">?</span>
+        <span id="login-btn-label" class="truncate">Login Akun</span>
       </button>
-      <button onclick="openModal('modal-keys')" class="px-2.5 h-9 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
-        API Key
+      <button onclick="openModal('modal-keys')" class="px-2.5 h-9 rounded-xl text-xs font-medium bg-indigo-950/80 hover:bg-indigo-900/70 text-indigo-200 border border-indigo-700/60 flex items-center gap-1.5">
+        <span id="header-conn-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+        <span>Koneksi AI</span>
       </button>
     </div>
   </header>
@@ -87,8 +91,24 @@
         <button onclick="toggleDrawer(false)" class="md:hidden ml-2 w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300">✕</button>
       </div>
 
-      <!-- Info Parser MarkItDown -->
-      <div class="p-3 border-b border-slate-800">
+      <!-- Info Akun & Koneksi -->
+      <div class="p-3 border-b border-slate-800 space-y-2">
+        <div class="p-2.5 rounded-xl bg-slate-850 border border-slate-800 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <div id="sidebar-user-name" class="text-xs font-semibold text-slate-100 truncate">Tamu Lokal</div>
+            <div id="sidebar-user-sub" class="text-[10px] text-slate-400 truncate">Belum login akun</div>
+          </div>
+          <button onclick="openModal('modal-login')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-indigo-300 shrink-0">Akun</button>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-slate-850 border border-slate-800 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-slate-200">Status Koneksi Agen</span>
+            <button onclick="openModal('modal-keys')" class="text-[11px] text-indigo-400 hover:underline">Atur</button>
+          </div>
+          <div id="sidebar-conn-summary" class="text-[11px] text-slate-400 leading-snug">Memuat status koneksi...</div>
+        </div>
+
         <div class="p-2.5 rounded-xl bg-slate-850 border border-slate-800 space-y-1">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-semibold text-cyan-400">MarkItDown Parser</span>
@@ -133,8 +153,16 @@
           <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center text-2xl font-bold text-white shadow-lg">E</div>
           <h1 class="text-xl font-bold">eto agentAi + MarkItDown</h1>
           <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
-            Satu antarmuka untuk <strong>Gemini, ChatGPT, Claude, DeepSeek, dan Perplexity</strong>. Unggah file <strong>.DOCX</strong> atau <strong>.XLSX</strong> di kotak input untuk dikonversi otomatis ke format Markdown rapi sebelum dianalisis agen AI.
+            Satu antarmuka untuk <strong>Gemini, ChatGPT, Claude, DeepSeek, dan Perplexity</strong>. Login akun Anda, hubungkan API Key Gemini atau model lain, dan unggah dokumen untuk dikonversi ke Markdown.
           </p>
+          <div class="flex flex-wrap justify-center gap-2">
+            <button onclick="openModal('modal-login')" class="px-4 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold">
+              Login / Konek Akun
+            </button>
+            <button onclick="openModal('modal-keys')" class="px-4 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">
+              Atur API Key Gemini &amp; Lainnya
+            </button>
+          </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left pt-2">
             <button onclick="selectAndPrompt('activity_report', 'Susun laporan kegiatan harian untuk pelaksanaan pemantauan lapangan, hasil temuan utama, dokumentasi, dan tindak lanjut.')" class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs">
               <div class="font-semibold text-amber-400">Laporan Kegiatan (Claude)</div>
@@ -186,37 +214,149 @@
     </main>
   </div>
 
-  <!-- Modal API Key -->
-  <div id="modal-keys" class="fixed inset-0 bg-black/70 z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-slate-900 border border-slate-800 w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-4 space-y-3">
+  <!-- Modal Login / Konek Akun -->
+  <div id="modal-login" class="fixed inset-0 bg-black/75 z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-4 space-y-3 max-h-[90dvh] overflow-y-auto">
       <div class="flex items-center justify-between">
-        <h2 class="font-bold text-sm">Konfigurasi API Key (eto agentAi)</h2>
+        <div>
+          <h2 class="font-bold text-sm">Login &amp; Konek Akun</h2>
+          <p class="text-[11px] text-slate-400">Masuk dengan profil akun atau Google Client ID untuk mengaitkan sesi Anda.</p>
+        </div>
+        <button onclick="closeModal('modal-login')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300">✕</button>
+      </div>
+
+      <div id="login-active-card" class="hidden p-3 rounded-xl bg-emerald-950/40 border border-emerald-700/50 flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div id="login-card-name" class="text-xs font-bold text-emerald-300 truncate">Nama Pengguna</div>
+          <div id="login-card-email" class="text-[11px] text-slate-300 truncate">email@contoh.com</div>
+          <div id="login-card-provider" class="text-[10px] text-emerald-400/90 mt-0.5">Metode: Akun Lokal</div>
+        </div>
+        <button type="button" onclick="logoutAccount()" class="px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 border border-rose-700/50 text-rose-200 text-xs shrink-0">Keluar</button>
+      </div>
+
+      <form onsubmit="handleAccountLogin(event)" class="space-y-2.5 text-xs">
+        <div>
+          <label class="text-slate-400">Nama Tampilan / Akun</label>
+          <input id="login-name" type="text" required placeholder="Contoh: Andi / Etophi" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+        </div>
+        <div>
+          <label class="text-slate-400">Email Akun</label>
+          <input id="login-email" type="email" required placeholder="nama@email.com" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+        </div>
+        <div>
+          <label class="text-slate-400">Google OAuth Client ID (Opsional untuk Google Sign-In Asli)</label>
+          <input id="google-client-id" type="text" placeholder="xxxx.apps.googleusercontent.com" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+        </div>
+        <div class="flex flex-wrap gap-2 pt-1">
+          <button type="submit" class="flex-1 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs">Masuk &amp; Konek Akun</button>
+          <button type="button" onclick="initGoogleSignIn()" class="px-3 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium">Google Sign-In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Pengaturan Koneksi Akun / API Key Gemini & Agen Lain -->
+  <div id="modal-keys" class="fixed inset-0 bg-black/75 z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl p-4 space-y-3 max-h-[90dvh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-bold text-sm">Pengaturan Koneksi Gemini &amp; Agen AI</h2>
+          <p class="text-[11px] text-slate-400">Simpan API Key &amp; model pilihan secara lokal di perangkat Anda.</p>
+        </div>
         <button onclick="closeModal('modal-keys')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300">✕</button>
       </div>
-      <p class="text-xs text-slate-400">Tanpa API Key, eto agentAi berjalan dalam mode simulasi cerdas. Isi kunci API resmi di bawah untuk menghubungkan langsung ke endpoint model.</p>
-      <div class="space-y-2 text-xs">
-        <div>
-          <label class="text-slate-400">Google Gemini API Key</label>
-          <input id="key-gemini" type="password" placeholder="AIza..." class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+
+      <!-- Catatan Akun Google / Gemini -->
+      <div class="p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-800/50 text-[11px] text-indigo-200 flex items-center justify-between gap-2">
+        <span>Ambil API Key Gemini di <strong>aistudio.google.com</strong> (API Keys).</span>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium shrink-0">Buka AI Studio</a>
+      </div>
+
+      <div id="conn-test-result" class="hidden p-2.5 rounded-xl text-xs border"></div>
+
+      <div class="space-y-3 text-xs">
+        <!-- Gemini -->
+        <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-indigo-400">Google Gemini</span>
+            <span id="status-gemini" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Simulasi</span>
+          </div>
+          <input id="key-gemini" type="password" placeholder="Gemini API Key (AIza...)" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-base" />
+          <div class="flex items-center gap-2">
+            <select id="model-gemini" class="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200">
+              <option value="gemini-2.5-flash">gemini-2.5-flash (Cepat &amp; Hemat)</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro (Analisis Mendalam)</option>
+            </select>
+            <button type="button" onclick="testConnection('gemini')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 shrink-0">Tes Konek</button>
+          </div>
         </div>
-        <div>
-          <label class="text-slate-400">OpenAI (ChatGPT) API Key</label>
-          <input id="key-chatgpt" type="password" placeholder="sk-..." class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+
+        <!-- ChatGPT -->
+        <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-emerald-400">ChatGPT (OpenAI)</span>
+            <span id="status-chatgpt" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Simulasi</span>
+          </div>
+          <input id="key-chatgpt" type="password" placeholder="OpenAI API Key (sk-...)" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-base" />
+          <div class="flex items-center gap-2">
+            <select id="model-chatgpt" class="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200">
+              <option value="gpt-4o-mini">gpt-4o-mini</option>
+              <option value="gpt-4o">gpt-4o</option>
+            </select>
+            <button type="button" onclick="testConnection('chatgpt')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 shrink-0">Tes Konek</button>
+          </div>
         </div>
-        <div>
-          <label class="text-slate-400">Anthropic (Claude) API Key</label>
-          <input id="key-claude" type="password" placeholder="sk-ant-..." class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+
+        <!-- Claude -->
+        <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-amber-400">Claude (Anthropic)</span>
+            <span id="status-claude" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Simulasi</span>
+          </div>
+          <input id="key-claude" type="password" placeholder="Anthropic API Key (sk-ant-...)" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-base" />
+          <div class="flex items-center gap-2">
+            <select id="model-claude" class="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200">
+              <option value="claude-3-5-sonnet-latest">claude-3-5-sonnet-latest</option>
+              <option value="claude-3-5-haiku-latest">claude-3-5-haiku-latest</option>
+            </select>
+            <button type="button" onclick="testConnection('claude')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 shrink-0">Tes Konek</button>
+          </div>
         </div>
-        <div>
-          <label class="text-slate-400">DeepSeek API Key</label>
-          <input id="key-deepseek" type="password" placeholder="sk-..." class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+
+        <!-- DeepSeek -->
+        <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-cyan-400">DeepSeek</span>
+            <span id="status-deepseek" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Simulasi</span>
+          </div>
+          <input id="key-deepseek" type="password" placeholder="DeepSeek API Key (sk-...)" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-base" />
+          <div class="flex items-center gap-2">
+            <select id="model-deepseek" class="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200">
+              <option value="deepseek-chat">deepseek-chat</option>
+              <option value="deepseek-reasoner">deepseek-reasoner</option>
+            </select>
+            <button type="button" onclick="testConnection('deepseek')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 shrink-0">Tes Konek</button>
+          </div>
         </div>
-        <div>
-          <label class="text-slate-400">Perplexity API Key</label>
-          <input id="key-perplexity" type="password" placeholder="pplx-..." class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+
+        <!-- Perplexity -->
+        <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-teal-400">Perplexity</span>
+            <span id="status-perplexity" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Simulasi</span>
+          </div>
+          <input id="key-perplexity" type="password" placeholder="Perplexity API Key (pplx-...)" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-base" />
+          <div class="flex items-center gap-2">
+            <select id="model-perplexity" class="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200">
+              <option value="sonar">sonar</option>
+              <option value="sonar-pro">sonar-pro</option>
+            </select>
+            <button type="button" onclick="testConnection('perplexity')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 shrink-0">Tes Konek</button>
+          </div>
         </div>
       </div>
-      <button onclick="saveKeys()" class="w-full h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs">Simpan Konfigurasi</button>
+
+      <button onclick="saveKeys()" class="w-full h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs">Simpan Pengaturan Koneksi</button>
     </div>
   </div>
 
@@ -375,18 +515,14 @@
     }
 
     async function docxArrayBufferToMarkdown(buffer, filename) {
-      if (typeof mammoth === 'undefined') {
-        throw new Error('Pustaka Mammoth.js belum termuat.');
-      }
+      if (typeof mammoth === 'undefined') throw new Error('Pustaka Mammoth.js belum termuat.');
       const htmlResult = await mammoth.convertToHtml({ arrayBuffer: buffer });
       const converted = htmlToMarkdown(htmlResult.value || '');
       return `# ${filename} (MarkItDown DOCX → MD)\n\n${converted.slice(0, 8000)}`;
     }
 
     function xlsxArrayBufferToMarkdown(buffer, filename) {
-      if (typeof XLSX === 'undefined') {
-        throw new Error('Pustaka SheetJS (XLSX) belum termuat.');
-      }
+      if (typeof XLSX === 'undefined') throw new Error('Pustaka SheetJS (XLSX) belum termuat.');
       const workbook = XLSX.read(buffer, { type: 'array' });
       const sheetSections = workbook.SheetNames.map((sheetName) => {
         const ws = workbook.Sheets[sheetName];
@@ -400,38 +536,23 @@
     async function convertFileToMarkItDown(file) {
       const filename = file.name;
       const ext = (filename.split('.').pop() || '').toLowerCase();
-
-      if (ext === 'docx') {
-        const buf = await file.arrayBuffer();
-        return await docxArrayBufferToMarkdown(buf, filename);
-      }
-
-      if (ext === 'xlsx' || ext === 'xls') {
-        const buf = await file.arrayBuffer();
-        return xlsxArrayBufferToMarkdown(buf, filename);
-      }
+      if (ext === 'docx') return await docxArrayBufferToMarkdown(await file.arrayBuffer(), filename);
+      if (ext === 'xlsx' || ext === 'xls') return xlsxArrayBufferToMarkdown(await file.arrayBuffer(), filename);
 
       const rawContent = await file.text();
       const trimmed = String(rawContent || '').trim();
       if (!trimmed) return `# ${filename}\n\n_(Dokumen kosong)_`;
 
-      if (ext === 'csv') {
-        return `# ${filename} (MarkItDown CSV → Table)\n\n${csvToMarkdownTable(trimmed)}`;
-      }
+      if (ext === 'csv') return `# ${filename} (MarkItDown CSV → Table)\n\n${csvToMarkdownTable(trimmed)}`;
       if (ext === 'json') {
         try {
-          const pretty = JSON.stringify(JSON.parse(trimmed), null, 2);
-          return `# ${filename} (MarkItDown JSON)\n\n\`\`\`json\n${pretty.slice(0, 6000)}\n\`\`\``;
+          return `# ${filename} (MarkItDown JSON)\n\n\`\`\`json\n${JSON.stringify(JSON.parse(trimmed), null, 2).slice(0, 6000)}\n\`\`\``;
         } catch (e) {
           return `# ${filename} (MarkItDown Raw)\n\n\`\`\`\n${trimmed.slice(0, 6000)}\n\`\`\``;
         }
       }
-      if (ext === 'html' || ext === 'htm') {
-        return `# ${filename} (MarkItDown HTML → MD)\n\n${htmlToMarkdown(trimmed).slice(0, 6000)}`;
-      }
-      if (ext === 'md' || ext === 'markdown') {
-        return `# ${filename}\n\n${trimmed.slice(0, 6000)}`;
-      }
+      if (ext === 'html' || ext === 'htm') return `# ${filename} (MarkItDown HTML → MD)\n\n${htmlToMarkdown(trimmed).slice(0, 6000)}`;
+      if (ext === 'md' || ext === 'markdown') return `# ${filename}\n\n${trimmed.slice(0, 6000)}`;
       return `# ${filename} (MarkItDown ${ext.toUpperCase() || 'TEXT'})\n\n\`\`\`${ext}\n${trimmed.slice(0, 6000)}\n\`\`\``;
     }
 
@@ -449,10 +570,7 @@
 
       try {
         const mdContent = await convertFileToMarkItDown(file);
-        pendingAttachment = {
-          name: file.name,
-          markdown: mdContent
-        };
+        pendingAttachment = { name: file.name, markdown: mdContent };
         document.getElementById('att-status').textContent = 'Siap MarkItDown';
         document.getElementById('att-md-snippet').textContent = mdContent.slice(0, 500);
       } catch (err) {
@@ -471,11 +589,11 @@
 
     const AGENTS = {
       auto: { id: 'auto', name: 'Auto-Agent', badge: 'Smart Routing' },
-      gemini: { id: 'gemini', name: 'Gemini', badge: 'Google AI' },
-      chatgpt: { id: 'chatgpt', name: 'ChatGPT', badge: 'OpenAI' },
-      claude: { id: 'claude', name: 'Claude', badge: 'Anthropic' },
-      deepseek: { id: 'deepseek', name: 'DeepSeek', badge: 'Reasoning' },
-      perplexity: { id: 'perplexity', name: 'Perplexity', badge: 'Web Riset' }
+      gemini: { id: 'gemini', name: 'Gemini', badge: 'Google AI', defaultModel: 'gemini-2.5-flash' },
+      chatgpt: { id: 'chatgpt', name: 'ChatGPT', badge: 'OpenAI', defaultModel: 'gpt-4o-mini' },
+      claude: { id: 'claude', name: 'Claude', badge: 'Anthropic', defaultModel: 'claude-3-5-sonnet-latest' },
+      deepseek: { id: 'deepseek', name: 'DeepSeek', badge: 'Reasoning', defaultModel: 'deepseek-chat' },
+      perplexity: { id: 'perplexity', name: 'Perplexity', badge: 'Web Riset', defaultModel: 'sonar' }
     };
 
     const NEEDS = [
@@ -493,24 +611,215 @@
       compareMode: false,
       sessions: [],
       currentSessionId: null,
-      keys: {}
+      keys: {},
+      models: {},
+      account: null,
+      googleClientId: ''
     };
 
     function loadState() {
       try {
-        const saved = JSON.parse(localStorage.getItem('eto_agentai_md_v1') || '{}');
+        const saved = JSON.parse(localStorage.getItem('eto_agentai_auth_v1') || '{}');
         if (saved.sessions) state.sessions = saved.sessions;
         if (saved.keys) state.keys = saved.keys;
+        if (saved.models) state.models = saved.models;
+        if (saved.account) state.account = saved.account;
+        if (saved.googleClientId) state.googleClientId = saved.googleClientId;
       } catch (e) {}
+      refreshAccountUI();
+      refreshConnectionBadges();
     }
 
     function saveState() {
       try {
-        localStorage.setItem('eto_agentai_md_v1', JSON.stringify({
+        localStorage.setItem('eto_agentai_auth_v1', JSON.stringify({
           sessions: state.sessions,
-          keys: state.keys
+          keys: state.keys,
+          models: state.models,
+          account: state.account,
+          googleClientId: state.googleClientId
         }));
       } catch (e) {}
+      refreshAccountUI();
+      refreshConnectionBadges();
+    }
+
+    function refreshAccountUI() {
+      const badge = document.getElementById('login-avatar-badge');
+      const btnLabel = document.getElementById('login-btn-label');
+      const sidebarName = document.getElementById('sidebar-user-name');
+      const sidebarSub = document.getElementById('sidebar-user-sub');
+      const activeCard = document.getElementById('login-active-card');
+
+      if (state.account && state.account.name) {
+        const initial = state.account.name.trim().charAt(0).toUpperCase() || 'A';
+        badge.textContent = initial;
+        badge.className = 'w-5 h-5 rounded-full bg-emerald-600 text-[10px] font-bold flex items-center justify-center text-white shrink-0';
+        btnLabel.textContent = state.account.name;
+        sidebarName.textContent = state.account.name;
+        sidebarSub.textContent = `${state.account.email || 'Akun Terkonek'} • ${state.account.provider || 'Lokal'}`;
+        if (activeCard) {
+          activeCard.classList.remove('hidden');
+          document.getElementById('login-card-name').textContent = state.account.name;
+          document.getElementById('login-card-email').textContent = state.account.email || '-';
+          document.getElementById('login-card-provider').textContent = `Metode: ${state.account.provider || 'Akun Lokal'}`;
+        }
+      } else {
+        badge.textContent = '?';
+        badge.className = 'w-5 h-5 rounded-full bg-indigo-600 text-[10px] font-bold flex items-center justify-center text-white shrink-0';
+        btnLabel.textContent = 'Login Akun';
+        sidebarName.textContent = 'Tamu Lokal';
+        sidebarSub.textContent = 'Belum login akun';
+        if (activeCard) activeCard.classList.add('hidden');
+      }
+    }
+
+    function handleAccountLogin(e) {
+      e.preventDefault();
+      const name = document.getElementById('login-name').value.trim();
+      const email = document.getElementById('login-email').value.trim();
+      const clientId = document.getElementById('google-client-id').value.trim();
+      if (!name || !email) return;
+
+      state.googleClientId = clientId;
+      state.account = {
+        name,
+        email,
+        provider: 'Akun Terkonek',
+        loggedInAt: new Date().toISOString()
+      };
+      saveState();
+      closeModal('modal-login');
+    }
+
+    function logoutAccount() {
+      state.account = null;
+      saveState();
+    }
+
+    function decodeJwtPayload(token) {
+      try {
+        const part = token.split('.')[1];
+        const json = atob(part.replace(/-/g, '+').replace(/_/g, '/'));
+        return JSON.parse(json);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function initGoogleSignIn() {
+      const clientId = (document.getElementById('google-client-id').value || state.googleClientId || '').trim();
+      state.googleClientId = clientId;
+      if (!clientId) {
+        const fallbackName = (document.getElementById('login-name').value || 'Pengguna Google').trim();
+        const fallbackEmail = (document.getElementById('login-email').value || 'akun.google@gmail.com').trim();
+        state.account = {
+          name: fallbackName,
+          email: fallbackEmail,
+          provider: 'Google (Profil Lokal)',
+          loggedInAt: new Date().toISOString()
+        };
+        saveState();
+        closeModal('modal-login');
+        return;
+      }
+
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => {
+            const payload = decodeJwtPayload(response.credential || '');
+            if (payload) {
+              state.account = {
+                name: payload.name || 'Akun Google',
+                email: payload.email || '',
+                provider: 'Google OAuth',
+                loggedInAt: new Date().toISOString()
+              };
+              saveState();
+              closeModal('modal-login');
+            }
+          }
+        });
+        window.google.accounts.id.prompt();
+      } else {
+        alert('Pustaka Google Sign-In sedang dimuat. Silakan coba lagi sesaat.');
+      }
+    }
+
+    function refreshConnectionBadges() {
+      const providers = ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'];
+      const connected = providers.filter(p => Boolean((state.keys[p] || '').trim()));
+
+      const dot = document.getElementById('header-conn-dot');
+      if (connected.length > 0) {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+      }
+
+      const summaryEl = document.getElementById('sidebar-conn-summary');
+      if (summaryEl) {
+        summaryEl.innerHTML = connected.length > 0
+          ? `<span class="text-emerald-400 font-medium">Terhubung (${connected.length}/5):</span> ${connected.map(p => AGENTS[p].name).join(', ')}`
+          : `Mode Simulasi Cerdas aktif. Tambahkan API Key Gemini atau agen lain di menu <strong>Koneksi AI</strong>.`;
+      }
+
+      providers.forEach(p => {
+        const el = document.getElementById('status-' + p);
+        if (!el) return;
+        if ((state.keys[p] || '').trim()) {
+          el.textContent = 'API Key Tersimpan';
+          el.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700/50';
+        } else {
+          el.textContent = 'Simulasi';
+          el.className = 'text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400';
+        }
+      });
+    }
+
+    async function testConnection(provider) {
+      const keyInput = document.getElementById('key-' + provider);
+      const modelSelect = document.getElementById('model-' + provider);
+      const apiKey = (keyInput ? keyInput.value : '').trim();
+      const modelName = modelSelect ? modelSelect.value : AGENTS[provider].defaultModel;
+      const box = document.getElementById('conn-test-result');
+
+      if (!apiKey) {
+        box.classList.remove('hidden');
+        box.className = 'p-2.5 rounded-xl text-xs border bg-amber-950/50 border-amber-700/50 text-amber-200';
+        box.textContent = `Masukkan API Key ${AGENTS[provider].name} terlebih dahulu sebelum menguji koneksi.`;
+        return;
+      }
+
+      box.classList.remove('hidden');
+      box.className = 'p-2.5 rounded-xl text-xs border bg-slate-800/80 border-slate-700 text-slate-200';
+      box.textContent = `Menguji koneksi ke ${AGENTS[provider].name} (${modelName})...`;
+
+      if (provider === 'gemini') {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: 'Balas dengan satu kata: OK' }] }] })
+          });
+          const data = await res.json();
+          if (res.ok && data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+            box.className = 'p-2.5 rounded-xl text-xs border bg-emerald-950/60 border-emerald-700/60 text-emerald-200';
+            box.textContent = `Koneksi Gemini (${modelName}) berhasil! Siap digunakan.`;
+          } else {
+            box.className = 'p-2.5 rounded-xl text-xs border bg-rose-950/60 border-rose-700/60 text-rose-200';
+            box.textContent = `Gagal terhubung ke Gemini: ${data?.error?.message || 'Periksa kembali API Key Anda.'}`;
+          }
+        } catch (err) {
+          box.className = 'p-2.5 rounded-xl text-xs border bg-rose-950/60 border-rose-700/60 text-rose-200';
+          box.textContent = `Kesalahan jaringan saat menguji Gemini: ${err.message}`;
+        }
+        return;
+      }
+
+      box.className = 'p-2.5 rounded-xl text-xs border bg-indigo-950/50 border-indigo-700/50 text-indigo-200';
+      box.textContent = `Kunci ${AGENTS[provider].name} (${modelName}) siap disimpan. Catatan: beberapa endpoint pihak ketiga membatasi panggilan langsung dari browser (CORS) sehingga akan otomatis memakai mode simulasi jika diblokir browser.`;
     }
 
     function detectBestAgent(text) {
@@ -540,7 +849,9 @@
     function renderBars() {
       document.getElementById('agent-bar').innerHTML = Object.values(AGENTS).map(a => {
         const active = state.selectedAgent === a.id && !state.compareMode;
-        return `<button onclick="selectAgent('${a.id}')" class="px-3 h-8 rounded-full text-xs font-medium shrink-0 border transition ${active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'}">${a.name}</button>`;
+        const hasKey = Boolean((state.keys[a.id] || '').trim());
+        const dot = hasKey ? ' • ●' : '';
+        return `<button onclick="selectAgent('${a.id}')" class="px-3 h-8 rounded-full text-xs font-medium shrink-0 border transition ${active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'}">${a.name}${dot}</button>`;
       }).join('');
 
       document.getElementById('needs-bar').innerHTML = `<span class="text-[11px] text-slate-500 shrink-0 mr-1">Kebutuhan:</span>` + NEEDS.map(n => {
@@ -554,7 +865,7 @@
     function selectAgent(id) {
       state.compareMode = false;
       state.selectedAgent = id;
-      document.getElementById('btn-compare').classList.remove('bg-indigo-600', 'text-white');
+      document.getElementById('btn-compare')?.classList.remove('bg-indigo-600', 'text-white');
       document.getElementById('header-subtitle').textContent = id === 'auto' ? 'Auto-Agent + MarkItDown' : 'Agen: ' + AGENTS[id].name;
       renderBars();
     }
@@ -576,10 +887,10 @@
       state.compareMode = !state.compareMode;
       const btn = document.getElementById('btn-compare');
       if (state.compareMode) {
-        btn.classList.add('bg-indigo-600', 'text-white');
+        btn?.classList.add('bg-indigo-600', 'text-white');
         document.getElementById('header-subtitle').textContent = 'Mode Bandingkan 5 Agen';
       } else {
-        btn.classList.remove('bg-indigo-600', 'text-white');
+        btn?.classList.remove('bg-indigo-600', 'text-white');
         document.getElementById('header-subtitle').textContent = state.selectedAgent === 'auto' ? 'Auto-Agent + MarkItDown' : 'Agen: ' + AGENTS[state.selectedAgent].name;
       }
       renderBars();
@@ -599,10 +910,12 @@
 
     async function callRealOrSimulatedAgent(agentId, prompt, attachment) {
       const effectivePrompt = buildEffectivePrompt(prompt, attachment);
-      const apiKey = state.keys[agentId];
+      const apiKey = (state.keys[agentId] || '').trim();
+      const modelName = (state.models && state.models[agentId]) || AGENTS[agentId]?.defaultModel;
+
       if (agentId === 'gemini' && apiKey) {
         try {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName || 'gemini-2.5-flash')}:generateContent?key=${encodeURIComponent(apiKey)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: [{ text: effectivePrompt }] }] })
@@ -628,7 +941,7 @@
       }
 
       const intros = {
-        gemini: `**[Gemini — Ringkasan & Produktivitas]**\nBerikut langkah praktis untuk "${prompt}":${mdNote}\n1. Identifikasi tujuan utama dan output yang dibutuhkan.\n2. Susun struktur poin inti secara ringkas agar mudah ditindaklanjuti.\n3. Lakukan validasi akhir sebelum dibagikan.`,
+        gemini: `**[Gemini (${modelName || 'gemini-2.5-flash'}) — Ringkasan & Produktivitas]**\nBerikut langkah praktis untuk "${prompt}":${mdNote}\n1. Identifikasi tujuan utama dan output yang dibutuhkan.\n2. Susun struktur poin inti secara ringkas agar mudah ditindaklanjuti.\n3. Lakukan validasi akhir sebelum dibagikan.`,
         chatgpt: `**[ChatGPT — Eksplorasi & Solusi]**\nUntuk permintaan "${prompt}", berikut pendekatan yang bisa langsung Anda pakai:${mdNote}\n• **Opsi Utama:** Fokus pada kejelasan pesan dan struktur yang mudah dipahami pembaca.\n• **Alternatif:** Kembangkan variasi format agar lebih menarik dan relevan dengan konteks Anda.`,
         claude: `**[Claude — Analisis Terstruktur]**\nMenanggapi "${prompt}", berikut kerangka pembahasan mendalam:${mdNote}\n1. **Konteks & Latar Belakang:** Menetapkan ruang lingkup permasalahan secara objektif.\n2. **Poin Analisis:** Menguraikan komponen kunci beserta pertimbangan risiko dan manfaatnya.\n3. **Rekomendasi:** Langkah implementasi bertahap yang terukur.`,
         deepseek: `**[DeepSeek — Penalaran Teknis & Logika]**\nSolusi teknis untuk "${prompt}" telah disusun dengan memprioritaskan efisiensi logika dan akurasi hasil.${mdNote}`,
@@ -736,8 +1049,21 @@
     }
 
     function openModal(id) {
+      if (id === 'modal-login') {
+        document.getElementById('login-name').value = state.account?.name || '';
+        document.getElementById('login-email').value = state.account?.email || '';
+        document.getElementById('google-client-id').value = state.googleClientId || '';
+        refreshAccountUI();
+      }
       if (id === 'modal-keys') {
-        ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'].forEach(k => { document.getElementById('key-' + k).value = state.keys[k] || ''; });
+        document.getElementById('conn-test-result').classList.add('hidden');
+        ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'].forEach(k => {
+          document.getElementById('key-' + k).value = state.keys[k] || '';
+          const modelSel = document.getElementById('model-' + k);
+          if (modelSel) {
+            modelSel.value = (state.models && state.models[k]) || AGENTS[k].defaultModel;
+          }
+        });
       }
       const el = document.getElementById(id);
       el.classList.remove('hidden'); el.classList.add('flex');
@@ -749,8 +1075,15 @@
     }
 
     function saveKeys() {
-      ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'].forEach(k => { state.keys[k] = document.getElementById('key-' + k).value.trim(); });
-      saveState(); closeModal('modal-keys');
+      state.models = state.models || {};
+      ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'].forEach(k => {
+        state.keys[k] = document.getElementById('key-' + k).value.trim();
+        const modelSel = document.getElementById('model-' + k);
+        if (modelSel) state.models[k] = modelSel.value;
+      });
+      saveState();
+      renderBars();
+      closeModal('modal-keys');
     }
 
     loadState(); renderBars(); renderHistory();
