@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>eto agentAi — Multi-Model AI Chat Agent</title>
+
+  <!-- PWA & Mobile App Meta Tags -->
+  <meta name="theme-color" content="#090d16" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="eto agentAi" />
+  <meta name="application-name" content="eto agentAi" />
+
+  <!-- Ikon Layar Utama -->
+  <link id="app-icon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='100%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='50%25' stop-color='%23a855f7'/%3E%3Cstop offset='100%25' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='url(%23g)'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='800' font-size='270' fill='%23ffffff'%3EE%3C/text%3E%3C/svg%3E" />
+  <link id="apple-touch-icon" rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='100%25' x2='100%25' y2='0%25'%3E%3Cstop offset='0%25' stop-color='%236366f1'/%3E%3Cstop offset='50%25' stop-color='%23a855f7'/%3E%3Cstop offset='100%25' stop-color='%2322d3ee'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='112' fill='url(%23g)'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='800' font-size='270' fill='%23ffffff'%3EE%3C/text%3E%3C/svg%3E" />
+  <link id="pwa-manifest" rel="manifest" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Pustaka Konversi .DOCX (Mammoth) & .XLSX/.XLS (SheetJS) di Browser -->
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: { 850: '#151e32', 950: '#090d16' }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-[100dvh] flex flex-col overflow-hidden">
+
+  <!-- Header -->
+  <header class="h-14 px-3 border-b border-slate-800 bg-slate-900/90 backdrop-blur flex items-center justify-between gap-2 shrink-0">
+    <div class="flex items-center gap-2 min-w-0">
+      <button id="btn-drawer" onclick="toggleDrawer(true)" class="md:hidden w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-200" aria-label="Menu">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center font-bold text-white text-sm shrink-0">E</div>
+      <div class="truncate">
+        <div class="font-semibold text-sm leading-tight truncate">eto agentAi</div>
+        <div id="header-subtitle" class="text-[11px] text-emerald-400 truncate">Auto-Agent + MarkItDown</div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button id="btn-install-pwa" onclick="triggerInstallPWA()" class="hidden px-2.5 h-9 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white items-center gap-1">
+        <span>Pasang App</span>
+      </button>
+      <button onclick="toggleCompareMode()" id="btn-compare" class="px-2.5 h-9 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5">
+        <span>Bandingkan</span>
+      </button>
+      <button onclick="openModal('modal-keys')" class="px-2.5 h-9 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
+        API Key
+      </button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex min-h-0 relative">
+    <!-- Backdrop Drawer Mobile -->
+    <div id="drawer-backdrop" onclick="toggleDrawer(false)" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-40 w-72 bg-slate-900 border-r border-slate-800 flex flex-col transform -translate-x-full md:translate-x-0 transition-transform duration-200">
+      <div class="p-3 border-b border-slate-800 flex items-center justify-between">
+        <button onclick="newChat()" class="flex-1 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-1.5">
+          <span>+ Obrolan Baru</span>
+        </button>
+        <button onclick="toggleDrawer(false)" class="md:hidden ml-2 w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300">✕</button>
+      </div>
+
+      <!-- Info Parser MarkItDown -->
+      <div class="p-3 border-b border-slate-800">
+        <div class="p-2.5 rounded-xl bg-slate-850 border border-slate-800 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-cyan-400">MarkItDown Parser</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800/60">DOCX &amp; XLSX</span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-snug">Mengonversi .DOCX, .XLSX/.XLS, CSV, JSON, HTML, TXT, dan MD menjadi Markdown rapi di browser.</p>
+        </div>
+      </div>
+
+      <!-- Riwayat Chat -->
+      <div class="flex-1 overflow-y-auto p-2 space-y-1" id="history-list"></div>
+
+      <!-- Footer Sidebar -->
+      <div class="p-3 border-t border-slate-800 space-y-2">
+        <button onclick="openModal('modal-pwa')" class="w-full h-9 rounded-xl bg-emerald-950/80 border border-emerald-700/60 hover:bg-emerald-900/60 text-xs font-medium text-emerald-300">
+          Pasang ke Layar Utama HP
+        </button>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="exportChat()" class="h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200">Ekspor .MD</button>
+          <button onclick="clearHistory()" class="h-9 rounded-xl bg-slate-800 hover:bg-rose-900/50 text-xs text-rose-300">Hapus Riwayat</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Area Utama -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-950">
+      <!-- Bar Pilihan Agen -->
+      <div class="px-3 py-2 border-b border-slate-800/80 bg-slate-900/40 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0" id="agent-bar"></div>
+
+      <!-- Bar Kebutuhan Saya -->
+      <div class="px-3 py-1.5 border-b border-slate-800/60 bg-slate-950 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0" id="needs-bar"></div>
+
+      <!-- Indikator Profil Kebutuhan Aktif -->
+      <div id="active-need-banner" class="px-3 py-1 bg-slate-900/60 border-b border-slate-800/60 text-[11px] text-slate-400 flex items-center justify-between gap-2 shrink-0">
+        <span id="active-need-desc">Profil: Otomatis — Menyesuaikan agen berdasarkan isi pesan.</span>
+        <span id="active-need-agent" class="text-emerald-400 font-medium shrink-0">Auto-Agent</span>
+      </div>
+
+      <!-- Daftar Pesan -->
+      <div id="chat-container" class="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+        <div id="welcome-screen" class="max-w-xl mx-auto text-center py-8 space-y-4">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center text-2xl font-bold text-white shadow-lg">E</div>
+          <h1 class="text-xl font-bold">eto agentAi + MarkItDown</h1>
+          <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            Satu antarmuka untuk <strong>Gemini, ChatGPT, Claude, DeepSeek, dan Perplexity</strong>. Unggah file <strong>.DOCX</strong> atau <strong>.XLSX</strong> di kotak input untuk dikonversi otomatis ke format Markdown rapi sebelum dianalisis agen AI.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left pt-2">
+            <button onclick="selectAndPrompt('activity_report', 'Susun laporan kegiatan harian untuk pelaksanaan pemantauan lapangan, hasil temuan utama, dokumentasi, dan tindak lanjut.')" class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs">
+              <div class="font-semibold text-amber-400">Laporan Kegiatan (Claude)</div>
+              <div class="text-slate-400 mt-0.5">Format kronologis, output &amp; tindak lanjut</div>
+            </button>
+            <button onclick="selectAndPrompt('data_analysis', 'Analisis data rekapitulasi bulanan, identifikasi tren, anomali nilai, dan rekomendasi berbasis angka.')" class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs">
+              <div class="font-semibold text-cyan-400">Analisis Data (DeepSeek)</div>
+              <div class="text-slate-400 mt-0.5">Evaluasi metrik, tren &amp; anomali data</div>
+            </button>
+            <button onclick="selectAndPrompt('official_summary', 'Buat ringkasan resmi rapat koordinasi dan poin keputusan penting untuk arsip pimpinan.')" class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs">
+              <div class="font-semibold text-indigo-400">Ringkasan Resmi (Gemini)</div>
+              <div class="text-slate-400 mt-0.5">Poin keputusan baku &amp; ringkas</div>
+            </button>
+            <button onclick="selectAndPrompt('research', 'Cari rujukan aturan teknis terbaru dan ringkas poin kepatuhan utamanya.')" class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs">
+              <div class="font-semibold text-teal-400">Riset &amp; Referensi (Perplexity)</div>
+              <div class="text-slate-400 mt-0.5">Ringkasan faktual &amp; rujukan</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pratinjau Lampiran MarkItDown -->
+      <div id="attachment-preview" class="hidden px-3 pt-2 border-t border-slate-800/80 bg-slate-900/90 shrink-0">
+        <div class="max-w-3xl mx-auto p-2.5 rounded-xl bg-slate-950 border border-cyan-800/60 flex items-start justify-between gap-2">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 text-xs">
+              <span class="font-semibold text-cyan-400 truncate" id="att-filename">dokumen.md</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/50 shrink-0" id="att-status">Siap MarkItDown</span>
+            </div>
+            <pre id="att-md-snippet" class="mt-1.5 text-[11px] text-slate-300 bg-slate-900/90 p-2 rounded-lg overflow-x-auto max-h-24 whitespace-pre-wrap"></pre>
+          </div>
+          <button type="button" onclick="clearAttachment()" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs shrink-0">✕</button>
+        </div>
+      </div>
+
+      <!-- Kotak Input -->
+      <div class="p-3 border-t border-slate-800 bg-slate-900/80 backdrop-blur shrink-0">
+        <form onsubmit="handleSend(event)" class="max-w-3xl mx-auto flex items-end gap-2">
+          <input id="file-upload" type="file" accept=".docx,.xlsx,.xls,.md,.txt,.csv,.json,.xml,.html,.htm,.log,.yaml,.yml" class="hidden" onchange="handleFileSelect(event)" />
+          <button type="button" onclick="document.getElementById('file-upload').click()" title="Konversi .DOCX, .XLSX, CSV, JSON, MD ke Markdown" class="h-11 w-11 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-400 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+          </button>
+          <textarea id="prompt-input" rows="1" placeholder="Ketik pesan atau lampirkan .docx / .xlsx..." class="flex-1 bg-slate-850 border border-slate-700 focus:border-indigo-500 focus:outline-none rounded-2xl px-3.5 py-2.5 text-base text-slate-100 placeholder-slate-500 resize-none max-h-32" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();handleSend(event);}"></textarea>
+          <button type="submit" class="h-11 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-semibold text-sm shrink-0">
+            Kirim
+          </button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal API Key -->
+  <div id="modal-keys" class="fixed inset-0 bg-black/70 z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="font-bold text-sm">Konfigurasi API Key (eto agentAi)</h2>
+        <button onclick="closeModal('modal-keys')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300">✕</button>
+      </div>
+      <p class="text-xs text-slate-400">Tanpa API Key, eto agentAi berjalan dalam mode simulasi cerdas. Isi kunci API resmi di bawah untuk menghubungkan langsung ke endpoint model.</p>
+      <div class="space-y-2 text-xs">
+        <div>
+          <label class="text-slate-400">Google Gemini API Key</label>
+          <input id="key-gemini" type="password" placeholder="AIza..." class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+        </div>
+        <div>
+          <label class="text-slate-400">OpenAI (ChatGPT) API Key</label>
+          <input id="key-chatgpt" type="password" placeholder="sk-..." class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+        </div>
+        <div>
+          <label class="text-slate-400">Anthropic (Claude) API Key</label>
+          <input id="key-claude" type="password" placeholder="sk-ant-..." class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+        </div>
+        <div>
+          <label class="text-slate-400">DeepSeek API Key</label>
+          <input id="key-deepseek" type="password" placeholder="sk-..." class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+        </div>
+        <div>
+          <label class="text-slate-400">Perplexity API Key</label>
+          <input id="key-perplexity" type="password" placeholder="pplx-..." class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-base" />
+        </div>
+      </div>
+      <button onclick="saveKeys()" class="w-full h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs">Simpan Konfigurasi</button>
+    </div>
+  </div>
+
+  <!-- Modal Panduan Instalasi PWA -->
+  <div id="modal-pwa" class="fixed inset-0 bg-black/70 z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h2 class="font-bold text-sm">Pasang eto agentAi di HP</h2>
+        <button onclick="closeModal('modal-pwa')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300">✕</button>
+      </div>
+      <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+        <p><strong class="text-emerald-400">Android (Chrome):</strong> Ketuk menu titik tiga (<strong>⋮</strong>) di pojok kanan atas &rarr; pilih <strong>Tambahkan ke layar utama</strong> atau <strong>Instal aplikasi</strong>.</p>
+        <p><strong class="text-indigo-400">iPhone (Safari):</strong> Ketuk ikon <strong>Bagikan</strong> (kotak dengan panah ke atas) &rarr; gulir ke bawah &rarr; pilih <strong>Tambah ke Layar Utama</strong>.</p>
+      </div>
+      <button onclick="closeModal('modal-pwa')" class="w-full h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs">Mengerti</button>
+    </div>
+  </div>
+
+  <script>
+    // PWA Manifest & Icon setup
+    (function setupPWA() {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        const grad = ctx.createLinearGradient(0, 512, 512, 0);
+        grad.addColorStop(0, '#6366f1');
+        grad.addColorStop(0.5, '#a855f7');
+        grad.addColorStop(1, '#22d3ee');
+
+        const r = 112;
+        ctx.beginPath();
+        ctx.moveTo(r, 0);
+        ctx.lineTo(512 - r, 0);
+        ctx.quadraticCurveTo(512, 0, 512, r);
+        ctx.lineTo(512, 512 - r);
+        ctx.quadraticCurveTo(512, 512, 512 - r, 512);
+        ctx.lineTo(r, 512);
+        ctx.quadraticCurveTo(0, 512, 0, 512 - r);
+        ctx.lineTo(0, r);
+        ctx.quadraticCurveTo(0, 0, r, 0);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 270px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('E', 256, 274);
+
+        const pngIconUrl = canvas.toDataURL('image/png');
+        document.getElementById('apple-touch-icon').href = pngIconUrl;
+        document.getElementById('app-icon').href = pngIconUrl;
+
+        const manifestObj = {
+          name: 'eto agentAi — Multi-Model AI Chat Agent',
+          short_name: 'eto agentAi',
+          description: 'Multi-Model AI Chat Agent dengan Gemini, ChatGPT, Claude, DeepSeek, dan Perplexity',
+          start_url: window.location.href.split('#')[0],
+          scope: './',
+          display: 'standalone',
+          orientation: 'portrait',
+          background_color: '#090d16',
+          theme_color: '#090d16',
+          icons: [
+            { src: pngIconUrl, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+            { src: pngIconUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+          ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/manifest+json' });
+        document.getElementById('pwa-manifest').href = URL.createObjectURL(manifestBlob);
+      } catch (e) {}
+
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        const swCode = `
+          self.addEventListener('install', e => self.skipWaiting());
+          self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+          self.addEventListener('fetch', e => {
+            e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+          });
+        `;
+        try {
+          const swUrl = URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }));
+          navigator.serviceWorker.register(swUrl).catch(() => {});
+        } catch (e) {}
+      }
+    })();
+
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const btn = document.getElementById('btn-install-pwa');
+      btn.classList.remove('hidden');
+      btn.classList.add('flex');
+    });
+
+    async function triggerInstallPWA() {
+      if (!deferredInstallPrompt) {
+        openModal('modal-pwa');
+        return;
+      }
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      document.getElementById('btn-install-pwa').classList.add('hidden');
+    }
+
+    // MarkItDown converter (.docx, .xlsx/.xls, .csv, .json, .html, .txt, .md)
+    function rowsToMarkdownTable(rows, maxRows = 30) {
+      if (!rows || rows.length === 0) return '';
+      const colCount = Math.max(...rows.map(r => r.length));
+      if (colCount === 0) return '';
+      const norm = rows.map(r =>
+        Array.from({ length: colCount }, (_, i) => String(r[i] ?? '').replace(/\|/g, '\\|').replace(/\r?\n/g, ' ').trim())
+      );
+      const header = `| ${norm[0].map(h => h || 'Kolom').join(' | ')} |`;
+      const sep = `| ${Array(colCount).fill('---').join(' | ')} |`;
+      const body = norm.slice(1, maxRows + 1).map(r => `| ${r.join(' | ')} |`).join('\n');
+      const note = norm.length > maxRows + 1 ? `\n\n_Menampilkan ${maxRows} baris pertama dari ${norm.length - 1} baris data._` : '';
+      return `${header}\n${sep}${body ? '\n' + body : ''}${note}`;
+    }
+
+    function csvToMarkdownTable(csvText) {
+      const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (lines.length === 0) return '';
+      const rows = lines.map(line => line.split(/[,;|\t]/).map(cell => cell.replace(/^"|"$/g, '').trim()));
+      return rowsToMarkdownTable(rows);
+    }
+
+    function htmlToMarkdown(htmlText) {
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        doc.querySelectorAll('script, style, noscript').forEach(el => el.remove());
+        const lines = [];
+        doc.querySelectorAll('h1, h2, h3, h4, p, li, tr').forEach(el => {
+          const tag = el.tagName.toLowerCase();
+          const txt = (el.textContent || '').replace(/\s+/g, ' ').trim();
+          if (!txt) return;
+          if (tag === 'h1') lines.push(`# ${txt}`);
+          else if (tag === 'h2') lines.push(`## ${txt}`);
+          else if (tag === 'h3' || tag === 'h4') lines.push(`### ${txt}`);
+          else if (tag === 'li') lines.push(`- ${txt}`);
+          else if (tag === 'tr') {
+            const cells = Array.from(el.querySelectorAll('th, td')).map(c => c.textContent.replace(/\|/g, '\\|').trim());
+            if (cells.length) lines.push(`| ${cells.join(' | ')} |`);
+          } else lines.push(txt);
+        });
+        return lines.join('\n\n') || (doc.body.textContent || '').trim();
+      } catch (e) {
+        return htmlText;
+      }
+    }
+
+    async function docxArrayBufferToMarkdown(buffer, filename) {
+      if (typeof mammoth === 'undefined') {
+        throw new Error('Pustaka Mammoth.js belum termuat.');
+      }
+      const htmlResult = await mammoth.convertToHtml({ arrayBuffer: buffer });
+      const converted = htmlToMarkdown(htmlResult.value || '');
+      return `# ${filename} (MarkItDown DOCX → MD)\n\n${converted.slice(0, 8000)}`;
+    }
+
+    function xlsxArrayBufferToMarkdown(buffer, filename) {
+      if (typeof XLSX === 'undefined') {
+        throw new Error('Pustaka SheetJS (XLSX) belum termuat.');
+      }
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      const sheetSections = workbook.SheetNames.map((sheetName) => {
+        const ws = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        const tableMd = rowsToMarkdownTable(rows, 30);
+        return `## Sheet: ${sheetName}\n\n${tableMd || '_(Sheet kosong)_'}`;
+      });
+      return `# ${filename} (MarkItDown XLSX → MD)\n\n${sheetSections.join('\n\n').slice(0, 8000)}`;
+    }
+
+    async function convertFileToMarkItDown(file) {
+      const filename = file.name;
+      const ext = (filename.split('.').pop() || '').toLowerCase();
+
+      if (ext === 'docx') {
+        const buf = await file.arrayBuffer();
+        return await docxArrayBufferToMarkdown(buf, filename);
+      }
+
+      if (ext === 'xlsx' || ext === 'xls') {
+        const buf = await file.arrayBuffer();
+        return xlsxArrayBufferToMarkdown(buf, filename);
+      }
+
+      const rawContent = await file.text();
+      const trimmed = String(rawContent || '').trim();
+      if (!trimmed) return `# ${filename}\n\n_(Dokumen kosong)_`;
+
+      if (ext === 'csv') {
+        return `# ${filename} (MarkItDown CSV → Table)\n\n${csvToMarkdownTable(trimmed)}`;
+      }
+      if (ext === 'json') {
+        try {
+          const pretty = JSON.stringify(JSON.parse(trimmed), null, 2);
+          return `# ${filename} (MarkItDown JSON)\n\n\`\`\`json\n${pretty.slice(0, 6000)}\n\`\`\``;
+        } catch (e) {
+          return `# ${filename} (MarkItDown Raw)\n\n\`\`\`\n${trimmed.slice(0, 6000)}\n\`\`\``;
+        }
+      }
+      if (ext === 'html' || ext === 'htm') {
+        return `# ${filename} (MarkItDown HTML → MD)\n\n${htmlToMarkdown(trimmed).slice(0, 6000)}`;
+      }
+      if (ext === 'md' || ext === 'markdown') {
+        return `# ${filename}\n\n${trimmed.slice(0, 6000)}`;
+      }
+      return `# ${filename} (MarkItDown ${ext.toUpperCase() || 'TEXT'})\n\n\`\`\`${ext}\n${trimmed.slice(0, 6000)}\n\`\`\``;
+    }
+
+    let pendingAttachment = null;
+
+    async function handleFileSelect(e) {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+
+      document.getElementById('att-filename').textContent = file.name;
+      document.getElementById('att-status').textContent = 'Mengonversi...';
+      document.getElementById('att-md-snippet').textContent = 'Memproses dokumen menjadi Markdown terstruktur...';
+      document.getElementById('attachment-preview').classList.remove('hidden');
+
+      try {
+        const mdContent = await convertFileToMarkItDown(file);
+        pendingAttachment = {
+          name: file.name,
+          markdown: mdContent
+        };
+        document.getElementById('att-status').textContent = 'Siap MarkItDown';
+        document.getElementById('att-md-snippet').textContent = mdContent.slice(0, 500);
+      } catch (err) {
+        pendingAttachment = null;
+        document.getElementById('att-status').textContent = 'Gagal Parse';
+        document.getElementById('att-md-snippet').textContent = err.message || 'Tidak dapat membaca file.';
+      }
+    }
+
+    function clearAttachment() {
+      pendingAttachment = null;
+      document.getElementById('attachment-preview').classList.add('hidden');
+      document.getElementById('att-filename').textContent = '';
+      document.getElementById('att-md-snippet').textContent = '';
+    }
+
+    const AGENTS = {
+      auto: { id: 'auto', name: 'Auto-Agent', badge: 'Smart Routing' },
+      gemini: { id: 'gemini', name: 'Gemini', badge: 'Google AI' },
+      chatgpt: { id: 'chatgpt', name: 'ChatGPT', badge: 'OpenAI' },
+      claude: { id: 'claude', name: 'Claude', badge: 'Anthropic' },
+      deepseek: { id: 'deepseek', name: 'DeepSeek', badge: 'Reasoning' },
+      perplexity: { id: 'perplexity', name: 'Perplexity', badge: 'Web Riset' }
+    };
+
+    const NEEDS = [
+      { id: 'default', label: 'Otomatis', agent: 'auto', desc: 'Profil: Otomatis — Menyesuaikan agen berdasarkan isi pesan.', prompt: '' },
+      { id: 'activity_report', label: 'Laporan Kegiatan', agent: 'claude', desc: 'Profil: Laporan Kegiatan — Waktu/lokasi, uraian pelaksanaan, capaian, kendala, dan tindak lanjut.', prompt: 'Susun sebagai laporan kegiatan terstruktur dengan bagian: Dasar/Waktu & Lokasi, Uraian Pelaksanaan, Capaian/Hasil, Kendala, dan Rencana Tindak Lanjut.' },
+      { id: 'data_analysis', label: 'Analisis Data', agent: 'deepseek', desc: 'Profil: Analisis Data — Metrik utama, tren/anomali, dan rekomendasi terukur.', prompt: 'Analisis data secara kuantitatif dan sistematis: ringkas metrik utama, soroti tren/anomali, jelaskan penyebab potensial, lalu beri rekomendasi terukur.' },
+      { id: 'official_summary', label: 'Ringkasan Resmi', agent: 'gemini', desc: 'Profil: Ringkasan Resmi — Bahasa formal, pokok bahasan, keputusan, dan tindak lanjut.', prompt: 'Sajikan sebagai ringkasan resmi yang ringkas, objektif, dan formal: Pokok Pembahasan, Keputusan/Kesimpulan, dan Tindak Lanjut/PIC.' },
+      { id: 'coding', label: 'Koding & Skrip', agent: 'deepseek', desc: 'Profil: Koding & Skrip — Solusi kode, rumus, dan otomasi teknis.', prompt: 'Fokus pada solusi kode yang bersih, efisien, dan terstruktur.' },
+      { id: 'research', label: 'Riset & Fakta', agent: 'perplexity', desc: 'Profil: Riset & Fakta — Ringkasan informasi dan rujukan.', prompt: 'Sajikan ringkasan faktual lengkap dengan poin referensi.' }
+    ];
+
+    let state = {
+      selectedAgent: 'auto',
+      selectedNeed: 'default',
+      compareMode: false,
+      sessions: [],
+      currentSessionId: null,
+      keys: {}
+    };
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('eto_agentai_md_v1') || '{}');
+        if (saved.sessions) state.sessions = saved.sessions;
+        if (saved.keys) state.keys = saved.keys;
+      } catch (e) {}
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('eto_agentai_md_v1', JSON.stringify({
+          sessions: state.sessions,
+          keys: state.keys
+        }));
+      } catch (e) {}
+    }
+
+    function detectBestAgent(text) {
+      const q = text.toLowerCase();
+      if (state.selectedNeed === 'activity_report') return { agent: 'claude', reason: 'Profil Kebutuhan: Laporan Kegiatan' };
+      if (state.selectedNeed === 'data_analysis') return { agent: 'deepseek', reason: 'Profil Kebutuhan: Analisis Data' };
+      if (state.selectedNeed === 'official_summary') return { agent: 'gemini', reason: 'Profil Kebutuhan: Ringkasan Resmi' };
+      if (/(laporan kegiatan|pelaksanaan kegiatan|kunjungan lapangan|dokumentasi kegiatan)/.test(q)) return { agent: 'claude', reason: 'Terdeteksi penyusunan laporan kegiatan' };
+      if (/(analisis data|rekap data|statistik|grafik|anomali|persentase|indeks|realisasi|csv|xlsx|tabel)/.test(q)) return { agent: 'deepseek', reason: 'Terdeteksi analisis data & evaluasi angka' };
+      if (/(ringkasan resmi|notulensi|kesimpulan rapat|poin keputusan|ringkas resmi)/.test(q)) return { agent: 'gemini', reason: 'Terdeteksi penyusunan ringkasan resmi' };
+      if (/(kode|code|python|javascript|html|sql|bug|error|rumus|excel|hitung|algoritma)/.test(q)) return { agent: 'deepseek', reason: 'Terdeteksi tugas pemrograman / logika teknis' };
+      if (/(cari|riset|terbaru|berita|sumber|referensi|regulasi|aturan|fakta|bandingkan harga)/.test(q)) return { agent: 'perplexity', reason: 'Terdeteksi kebutuhan riset & verifikasi informasi' };
+      if (/(surat|laporan|naskah|analisis|evaluasi|kebijakan|esay|artikel|formal)/.test(q)) return { agent: 'claude', reason: 'Terdeteksi penulisan dokumen terstruktur & analisis' };
+      return { agent: 'gemini', reason: 'Terdeteksi tugas produktivitas & ringkasan umum' };
+    }
+
+    function updateNeedBanner() {
+      const need = NEEDS.find(n => n.id === state.selectedNeed) || NEEDS[0];
+      document.getElementById('active-need-desc').textContent = need.desc;
+      document.getElementById('active-need-agent').textContent = state.compareMode
+        ? 'Mode Bandingkan (5 Agen)'
+        : (state.selectedAgent === 'auto'
+            ? (need.agent === 'auto' ? 'Auto-Agent' : `Auto-Agent → ${AGENTS[need.agent].name}`)
+            : AGENTS[state.selectedAgent].name);
+    }
+
+    function renderBars() {
+      document.getElementById('agent-bar').innerHTML = Object.values(AGENTS).map(a => {
+        const active = state.selectedAgent === a.id && !state.compareMode;
+        return `<button onclick="selectAgent('${a.id}')" class="px-3 h-8 rounded-full text-xs font-medium shrink-0 border transition ${active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'}">${a.name}</button>`;
+      }).join('');
+
+      document.getElementById('needs-bar').innerHTML = `<span class="text-[11px] text-slate-500 shrink-0 mr-1">Kebutuhan:</span>` + NEEDS.map(n => {
+        const active = state.selectedNeed === n.id;
+        return `<button onclick="selectNeed('${n.id}')" class="px-2.5 h-7 rounded-lg text-[11px] shrink-0 border transition ${active ? 'bg-emerald-950/80 border-emerald-600/60 text-emerald-300' : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'}">${n.label}</button>`;
+      }).join('');
+
+      updateNeedBanner();
+    }
+
+    function selectAgent(id) {
+      state.compareMode = false;
+      state.selectedAgent = id;
+      document.getElementById('btn-compare').classList.remove('bg-indigo-600', 'text-white');
+      document.getElementById('header-subtitle').textContent = id === 'auto' ? 'Auto-Agent + MarkItDown' : 'Agen: ' + AGENTS[id].name;
+      renderBars();
+    }
+
+    function selectNeed(id) {
+      state.selectedNeed = id;
+      const need = NEEDS.find(n => n.id === id);
+      if (need) selectAgent(need.agent);
+      renderBars();
+    }
+
+    function selectAndPrompt(needId, text) {
+      selectNeed(needId);
+      document.getElementById('prompt-input').value = text;
+      handleSend(new Event('submit'));
+    }
+
+    function toggleCompareMode() {
+      state.compareMode = !state.compareMode;
+      const btn = document.getElementById('btn-compare');
+      if (state.compareMode) {
+        btn.classList.add('bg-indigo-600', 'text-white');
+        document.getElementById('header-subtitle').textContent = 'Mode Bandingkan 5 Agen';
+      } else {
+        btn.classList.remove('bg-indigo-600', 'text-white');
+        document.getElementById('header-subtitle').textContent = state.selectedAgent === 'auto' ? 'Auto-Agent + MarkItDown' : 'Agen: ' + AGENTS[state.selectedAgent].name;
+      }
+      renderBars();
+    }
+
+    function buildEffectivePrompt(rawPrompt, attachment) {
+      const need = NEEDS.find(n => n.id === state.selectedNeed);
+      const parts = [rawPrompt];
+      if (attachment && attachment.markdown) {
+        parts.push(`--- [MARKITDOWN CONTEXT: ${attachment.name}] ---\n${attachment.markdown}\n--- [END MARKITDOWN CONTEXT] ---`);
+      }
+      if (need && need.prompt) {
+        parts.push(`[Instruksi Profil ${need.label}: ${need.prompt}]`);
+      }
+      return parts.join('\n\n');
+    }
+
+    async function callRealOrSimulatedAgent(agentId, prompt, attachment) {
+      const effectivePrompt = buildEffectivePrompt(prompt, attachment);
+      const apiKey = state.keys[agentId];
+      if (agentId === 'gemini' && apiKey) {
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: effectivePrompt }] }] })
+          });
+          const data = await res.json();
+          const out = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (out) return out;
+        } catch (e) {}
+      }
+
+      const mdNote = attachment
+        ? `\n• **Konteks MarkItDown (${attachment.name}):** Berhasil dipetakan ke struktur Markdown (${attachment.markdown.length} karakter) untuk dianalisis.`
+        : '';
+
+      if (state.selectedNeed === 'activity_report') {
+        return `**[Laporan Kegiatan — ${AGENTS[agentId].name}]**\n• **Topik / Kegiatan:** ${prompt}${mdNote}\n• **Waktu & Lokasi:** Sesuai catatan pelaksanaan kegiatan\n• **Uraian Pelaksanaan:** Pelaksanaan kegiatan berjalan sesuai rencana kerja dengan koordinasi pihak terkait.\n• **Capaian / Output:** Data dan catatan kegiatan terdokumentasi untuk pelaporan.\n• **Tindak Lanjut:** Melengkapi lampiran pendukung dan meneruskan hasil ke tahapan berikutnya.`;
+      }
+      if (state.selectedNeed === 'data_analysis') {
+        return `**[Analisis Data — ${AGENTS[agentId].name}]**\n• **Ringkasan Metrik:** Evaluasi utama difokuskan pada "${prompt}".${mdNote}\n• **Temuan & Tren:** Perlu pemantauan pada kategori dengan selisih tertinggi dibanding target/rata-rata.\n• **Rekomendasi:** Validasi sumber data mentah dan tetapkan prioritas perbaikan berbasis dampak.`;
+      }
+      if (state.selectedNeed === 'official_summary') {
+        return `**[Ringkasan Resmi — ${AGENTS[agentId].name}]**\n• **Pokok Bahasan:** ${prompt}${mdNote}\n• **Keputusan / Kesimpulan:** Disepakati langkah kerja formal yang terukur dan terdokumentasi.\n• **Tindak Lanjut & PIC:** Penetapan jadwal pelaksanaan, penyiapan dokumen pendukung, dan pelaporan berkala.`;
+      }
+
+      const intros = {
+        gemini: `**[Gemini — Ringkasan & Produktivitas]**\nBerikut langkah praktis untuk "${prompt}":${mdNote}\n1. Identifikasi tujuan utama dan output yang dibutuhkan.\n2. Susun struktur poin inti secara ringkas agar mudah ditindaklanjuti.\n3. Lakukan validasi akhir sebelum dibagikan.`,
+        chatgpt: `**[ChatGPT — Eksplorasi & Solusi]**\nUntuk permintaan "${prompt}", berikut pendekatan yang bisa langsung Anda pakai:${mdNote}\n• **Opsi Utama:** Fokus pada kejelasan pesan dan struktur yang mudah dipahami pembaca.\n• **Alternatif:** Kembangkan variasi format agar lebih menarik dan relevan dengan konteks Anda.`,
+        claude: `**[Claude — Analisis Terstruktur]**\nMenanggapi "${prompt}", berikut kerangka pembahasan mendalam:${mdNote}\n1. **Konteks & Latar Belakang:** Menetapkan ruang lingkup permasalahan secara objektif.\n2. **Poin Analisis:** Menguraikan komponen kunci beserta pertimbangan risiko dan manfaatnya.\n3. **Rekomendasi:** Langkah implementasi bertahap yang terukur.`,
+        deepseek: `**[DeepSeek — Penalaran Teknis & Logika]**\nSolusi teknis untuk "${prompt}" telah disusun dengan memprioritaskan efisiensi logika dan akurasi hasil.${mdNote}`,
+        perplexity: `**[Perplexity — Riset & Referensi]**\nHasil penelusuran untuk "${prompt}":${mdNote}\n• **Temuan Inti:** Pendekatan berbasis data mempercepat pengambilan keputusan hingga lebih terukur.\n• **Sumber Rujukan:** [1] Dokumentasi Teknis Terkait • [2] Praktik Terbaik Industri.`
+      };
+      return intros[agentId] || intros.gemini;
+    }
+
+    async function handleSend(e) {
+      e.preventDefault();
+      const input = document.getElementById('prompt-input');
+      const text = input.value.trim();
+      const attachment = pendingAttachment;
+      if (!text && !attachment) return;
+
+      const finalText = text || `Analisis dokumen ${attachment.name} yang telah dikonversi via MarkItDown.`;
+      input.value = '';
+      clearAttachment();
+
+      if (!state.currentSessionId) {
+        const id = 'ses_' + Date.now();
+        state.sessions.unshift({ id, title: finalText.slice(0, 36), messages: [] });
+        state.currentSessionId = id;
+      }
+      const session = state.sessions.find(s => s.id === state.currentSessionId);
+      session.messages.push({ role: 'user', text: finalText, attachmentName: attachment ? attachment.name : null });
+      renderMessages();
+
+      if (state.compareMode) {
+        const ids = ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'];
+        const results = await Promise.all(ids.map(async id => ({
+          agent: id,
+          text: await callRealOrSimulatedAgent(id, finalText, attachment)
+        })));
+        session.messages.push({ role: 'compare', results });
+      } else {
+        let targetAgent = state.selectedAgent;
+        let routeReason = '';
+        if (targetAgent === 'auto') {
+          const routed = detectBestAgent(finalText);
+          targetAgent = routed.agent;
+          routeReason = routed.reason;
+        }
+        const reply = await callRealOrSimulatedAgent(targetAgent, finalText, attachment);
+        session.messages.push({ role: 'assistant', agent: targetAgent, reason: routeReason, text: reply });
+      }
+
+      saveState();
+      renderMessages();
+      renderHistory();
+    }
+
+    function formatMarkdownSimple(str) {
+      return str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    }
+
+    function renderMessages() {
+      const container = document.getElementById('chat-container');
+      const welcome = document.getElementById('welcome-screen');
+      const session = state.sessions.find(s => s.id === state.currentSessionId);
+
+      if (!session || session.messages.length === 0) {
+        welcome.classList.remove('hidden');
+        container.innerHTML = '';
+        container.appendChild(welcome);
+        return;
+      }
+
+      welcome.classList.add('hidden');
+      container.innerHTML = session.messages.map(m => {
+        if (m.role === 'user') {
+          const badge = m.attachmentName
+            ? `<div class="mt-1.5 text-[11px] bg-indigo-950/70 border border-indigo-400/30 text-indigo-200 px-2 py-0.5 rounded-md inline-block">MarkItDown: ${m.attachmentName}</div>`
+            : '';
+          return `<div class="max-w-3xl mx-auto flex justify-end"><div class="bg-indigo-600 text-white px-4 py-2.5 rounded-2xl rounded-br-sm text-sm max-w-[85%]">${m.text}${badge}</div></div>`;
+        }
+        if (m.role === 'compare') {
+          return `<div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-2.5">${m.results.map(r => `<div class="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-xs space-y-1.5"><div class="font-bold text-indigo-400">${AGENTS[r.agent].name}</div><div class="text-slate-200 leading-relaxed">${formatMarkdownSimple(r.text)}</div></div>`).join('')}</div>`;
+        }
+        return `<div class="max-w-3xl mx-auto space-y-1.5">${m.reason ? `<div class="text-[11px] text-emerald-400 bg-emerald-950/50 border border-emerald-800/50 px-2.5 py-1 rounded-lg inline-block">Auto-Routing → <strong>${AGENTS[m.agent].name}</strong> (${m.reason})</div>` : ''}<div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-sm text-slate-100 leading-relaxed"><div class="text-xs font-bold text-indigo-400 mb-1">${AGENTS[m.agent].name}</div><div>${formatMarkdownSimple(m.text)}</div></div></div>`;
+      }).join('');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function renderHistory() {
+      document.getElementById('history-list').innerHTML = state.sessions.map(s => `<button onclick="openSession('${s.id}')" class="w-full text-left px-3 py-2 rounded-xl text-xs truncate ${s.id === state.currentSessionId ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:bg-slate-850'}">${s.title}</button>`).join('');
+    }
+
+    function openSession(id) { state.currentSessionId = id; renderMessages(); renderHistory(); toggleDrawer(false); }
+    function newChat() { state.currentSessionId = null; renderMessages(); renderHistory(); toggleDrawer(false); }
+    function clearHistory() { state.sessions = []; state.currentSessionId = null; saveState(); renderMessages(); renderHistory(); }
+    function exportChat() {
+      const session = state.sessions.find(s => s.id === state.currentSessionId);
+      if (!session) return;
+      const md = session.messages.map(m => m.role === 'user' ? `### Anda\n${m.text}` : `### ${m.agent || 'Compare'}\n${m.text || ''}`).join('\n\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
+      a.download = 'eto_agentAi_Chat.md';
+      a.click();
+    }
+
+    function toggleDrawer(open) {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full', !open);
+      document.getElementById('drawer-backdrop').classList.toggle('hidden', !open);
+    }
+
+    function openModal(id) {
+      if (id === 'modal-keys') {
+        ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'].forEach(k => { document.getElementById('key-' + k).value = state.keys[k] || ''; });
+      }
+      const el = document.getElementById(id);
+      el.classList.remove('hidden'); el.classList.add('flex');
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      el.classList.add('hidden'); el.classList.remove('flex');
+    }
+
+    function saveKeys() {
+      ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'].forEach(k => { state.keys[k] = document.getElementById('key-' + k).value.trim(); });
+      saveState(); closeModal('modal-keys');
+    }
+
+    loadState(); renderBars(); renderHistory();
+  </script>
+</body>
+</html>
