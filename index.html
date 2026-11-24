@@ -64,7 +64,7 @@
       <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center font-bold text-white text-sm shrink-0">E</div>
       <div class="truncate">
         <div class="font-semibold text-sm leading-tight truncate">eto agentAi</div>
-        <div id="header-subtitle" class="text-[11px] text-emerald-400 truncate">Auto-Agent + MarkItDown OCR</div>
+        <div id="header-subtitle" class="text-[11px] text-emerald-400 truncate">Auto-Agent + FreeLLMAPI + MarkItDown</div>
       </div>
     </div>
 
@@ -77,7 +77,7 @@
         <span id="login-btn-label" class="truncate">Login Akun</span>
       </button>
       <button onclick="openModal('modal-keys')" class="px-2.5 h-9 rounded-xl text-xs font-medium bg-indigo-950/80 hover:bg-indigo-900/70 text-indigo-200 border border-indigo-700/60 flex items-center gap-1.5">
-        <span id="header-conn-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+        <span id="header-conn-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
         <span>Koneksi AI</span>
       </button>
     </div>
@@ -161,16 +161,16 @@
       <div id="chat-container" class="flex-1 overflow-y-auto px-3 py-4 space-y-4">
         <div id="welcome-screen" class="max-w-xl mx-auto text-center py-8 space-y-4">
           <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center text-2xl font-bold text-white shadow-lg">E</div>
-          <h1 class="text-xl font-bold">eto agentAi + MarkItDown OCR</h1>
+          <h1 class="text-xl font-bold">eto agentAi + FreeLLMAPI</h1>
           <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
-            Satu antarmuka untuk <strong>Gemini, ChatGPT, Claude, DeepSeek, dan Perplexity</strong>. Mendukung baca <strong>.PDF teks &amp; .PDF scan (OCR)</strong>, <strong>.DOCX</strong>, dan <strong>.XLSX</strong> langsung di browser.
+            Satu antarmuka untuk <strong>Free LLM API (Gratis/Open-Source), Gemini, ChatGPT, Claude, DeepSeek, dan Perplexity</strong>. Mendukung baca <strong>.PDF teks &amp; .PDF scan (OCR)</strong>, <strong>.DOCX</strong>, dan <strong>.XLSX</strong>.
           </p>
           <div class="flex flex-wrap justify-center gap-2">
-            <button onclick="openModal('modal-login')" class="px-4 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-semibold">
-              Login / Konek Akun
+            <button onclick="selectAndPrompt('free_llm', 'Halo! Perkenalkan kemampuanmu sebagai Free LLM API dan bantu ringkas poin kerja hari ini.')" class="px-4 h-9 rounded-xl bg-lime-600 hover:bg-lime-500 text-slate-950 text-xs font-bold">
+              Coba Free LLM API (Gratis)
             </button>
             <button onclick="openModal('modal-keys')" class="px-4 h-9 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold">
-              Atur API Key Gemini &amp; Lainnya
+              Atur Endpoint FreeLLM &amp; API Key
             </button>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left pt-2">
@@ -186,9 +186,9 @@
               <div class="font-semibold text-indigo-400">Ringkasan Resmi (Gemini)</div>
               <div class="text-slate-400 mt-0.5">Poin keputusan baku &amp; ringkas</div>
             </button>
-            <button onclick="selectAndPrompt('research', 'Cari rujukan aturan teknis terbaru dan ringkas poin kepatuhan utamanya.')" class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs">
-              <div class="font-semibold text-teal-400">Riset &amp; Referensi (Perplexity)</div>
-              <div class="text-slate-400 mt-0.5">Ringkasan faktual &amp; rujukan</div>
+            <button onclick="selectAndPrompt('free_llm', 'Buatkan draf tanggapan cepat dan checklist verifikasi berkas administrasi secara ringkas.')" class="p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs">
+              <div class="font-semibold text-lime-400">Mode Gratis (Free LLM API)</div>
+              <div class="text-slate-400 mt-0.5">Endpoint komunitas tanpa kunci berbayar</div>
             </button>
           </div>
         </div>
@@ -265,26 +265,54 @@
     </div>
   </div>
 
-  <!-- Modal Pengaturan Koneksi Akun / API Key Gemini & Agen Lain -->
+  <!-- Modal Pengaturan Koneksi Akun / FreeLLMAPI / API Key -->
   <div id="modal-keys" class="fixed inset-0 bg-black/75 z-50 hidden items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-slate-900 border border-slate-800 w-full sm:max-w-lg rounded-t-3xl sm:rounded-2xl p-4 space-y-3 max-h-[90dvh] overflow-y-auto">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="font-bold text-sm">Pengaturan Koneksi Gemini &amp; Agen AI</h2>
-          <p class="text-[11px] text-slate-400">Simpan API Key &amp; model pilihan secara lokal di perangkat Anda.</p>
+          <h2 class="font-bold text-sm">Pengaturan FreeLLMAPI, Gemini &amp; Agen AI</h2>
+          <p class="text-[11px] text-slate-400">Atur endpoint Free LLM API GitHub atau API Key berbayar Anda.</p>
         </div>
         <button onclick="closeModal('modal-keys')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-300">✕</button>
-      </div>
-
-      <!-- Catatan Akun Google / Gemini -->
-      <div class="p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-800/50 text-[11px] text-indigo-200 flex items-center justify-between gap-2">
-        <span>Ambil API Key Gemini di <strong>aistudio.google.com</strong> (API Keys).</span>
-        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium shrink-0">Buka AI Studio</a>
       </div>
 
       <div id="conn-test-result" class="hidden p-2.5 rounded-xl text-xs border"></div>
 
       <div class="space-y-3 text-xs">
+        <!-- Free LLM API (GitHub / Open-Source Compatible) -->
+        <div class="p-3 rounded-xl bg-lime-950/20 border border-lime-700/50 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-lime-400">Free LLM API (GitHub / OpenAI-Compatible)</span>
+            <span id="status-freellm" class="text-[10px] px-2 py-0.5 rounded-full bg-lime-950 text-lime-300 border border-lime-700/50">Siap Gratis</span>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Preset Provider Free LLM API</label>
+            <select id="preset-freellm" onchange="applyFreeLlmPreset()" class="w-full mt-1 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200">
+              <option value="pollinations">Pollinations AI (Tanpa API Key • Langsung Jalan)</option>
+              <option value="openrouter">OpenRouter Free Models (:free • Butuh Key Gratis)</option>
+              <option value="groq">Groq Cloud Free Tier (Llama 3.3 • Butuh Key Gratis)</option>
+              <option value="custom">Custom Repo GitHub / Proxy URL</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Endpoint Chat Completions URL</label>
+            <input id="url-freellm" type="url" placeholder="https://text.pollinations.ai/openai" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-100" />
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] text-slate-400">Nama Model</label>
+              <input id="model-freellm" type="text" placeholder="openai / llama-3.3-70b-versatile" class="w-full mt-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-100" />
+            </div>
+            <div>
+              <label class="text-[11px] text-slate-400">API Key (Opsional untuk Pollinations)</label>
+              <input id="key-freellm" type="password" placeholder="Kosongkan jika tanpa key" class="w-full mt-1 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-100" />
+            </div>
+          </div>
+          <div class="flex justify-end">
+            <button type="button" onclick="testConnection('freellm')" class="px-3 py-1.5 rounded-lg bg-lime-700 hover:bg-lime-600 text-slate-950 font-semibold text-xs">Tes Konek FreeLLMAPI</button>
+          </div>
+        </div>
+
         <!-- Gemini -->
         <div class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2">
           <div class="flex items-center justify-between">
@@ -426,7 +454,7 @@
         const manifestObj = {
           name: 'eto agentAi — Multi-Model AI Chat Agent',
           short_name: 'eto agentAi',
-          description: 'Multi-Model AI Chat Agent dengan Gemini, ChatGPT, Claude, DeepSeek, dan Perplexity',
+          description: 'Multi-Model AI Chat Agent dengan FreeLLMAPI, Gemini, ChatGPT, Claude, DeepSeek, dan Perplexity',
           start_url: window.location.href.split('#')[0],
           scope: './',
           display: 'standalone',
@@ -578,7 +606,6 @@
         let cleaned = pageText.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
         let pageTag = '';
 
-        // Jika teks sangat sedikit / kosong, anggap halaman scan dan jalankan OCR
         if (cleaned.length < 15 && ocrPagesUsed < maxOcrPages) {
           ocrPagesUsed += 1;
           usedOcrAny = true;
@@ -698,8 +725,15 @@
       document.getElementById('att-md-snippet').textContent = '';
     }
 
+    const FREE_LLM_PRESETS = {
+      pollinations: { url: 'https://text.pollinations.ai/openai', model: 'openai' },
+      openrouter: { url: 'https://openrouter.ai/api/v1/chat/completions', model: 'meta-llama/llama-3.3-70b-instruct:free' },
+      groq: { url: 'https://api.groq.com/openai/v1/chat/completions', model: 'llama-3.3-70b-versatile' }
+    };
+
     const AGENTS = {
       auto: { id: 'auto', name: 'Auto-Agent', badge: 'Smart Routing' },
+      freellm: { id: 'freellm', name: 'Free LLM API', badge: 'Gratis GitHub/OSS', defaultModel: 'openai' },
       gemini: { id: 'gemini', name: 'Gemini', badge: 'Google AI', defaultModel: 'gemini-2.5-flash' },
       chatgpt: { id: 'chatgpt', name: 'ChatGPT', badge: 'OpenAI', defaultModel: 'gpt-4o-mini' },
       claude: { id: 'claude', name: 'Claude', badge: 'Anthropic', defaultModel: 'claude-3-5-sonnet-latest' },
@@ -709,6 +743,7 @@
 
     const NEEDS = [
       { id: 'default', label: 'Otomatis', agent: 'auto', desc: 'Profil: Otomatis — Menyesuaikan agen berdasarkan isi pesan.', prompt: '' },
+      { id: 'free_llm', label: 'Free LLM (Gratis)', agent: 'freellm', desc: 'Profil: Free LLM API — Menggunakan endpoint gratis/open-source GitHub.', prompt: '' },
       { id: 'activity_report', label: 'Laporan Kegiatan', agent: 'claude', desc: 'Profil: Laporan Kegiatan — Waktu/lokasi, uraian pelaksanaan, capaian, kendala, dan tindak lanjut.', prompt: 'Susun sebagai laporan kegiatan terstruktur dengan bagian: Dasar/Waktu & Lokasi, Uraian Pelaksanaan, Capaian/Hasil, Kendala, dan Rencana Tindak Lanjut.' },
       { id: 'data_analysis', label: 'Analisis Data', agent: 'deepseek', desc: 'Profil: Analisis Data — Metrik utama, tren/anomali, dan rekomendasi terukur.', prompt: 'Analisis data secara kuantitatif dan sistematis: ringkas metrik utama, soroti tren/anomali, jelaskan penyebab potensial, lalu beri rekomendasi terukur.' },
       { id: 'official_summary', label: 'Ringkasan Resmi', agent: 'gemini', desc: 'Profil: Ringkasan Resmi — Bahasa formal, pokok bahasan, keputusan, dan tindak lanjut.', prompt: 'Sajikan sebagai ringkasan resmi yang ringkas, objektif, dan formal: Pokok Pembahasan, Keputusan/Kesimpulan, dan Tindak Lanjut/PIC.' },
@@ -723,7 +758,9 @@
       sessions: [],
       currentSessionId: null,
       keys: {},
-      models: {},
+      models: { freellm: 'openai' },
+      freeLlmUrl: 'https://text.pollinations.ai/openai',
+      freeLlmPreset: 'pollinations',
       account: null,
       googleClientId: ''
     };
@@ -733,7 +770,9 @@
         const saved = JSON.parse(localStorage.getItem('eto_agentai_auth_v1') || '{}');
         if (saved.sessions) state.sessions = saved.sessions;
         if (saved.keys) state.keys = saved.keys;
-        if (saved.models) state.models = saved.models;
+        if (saved.models) state.models = { freellm: 'openai', ...saved.models };
+        if (saved.freeLlmUrl) state.freeLlmUrl = saved.freeLlmUrl;
+        if (saved.freeLlmPreset) state.freeLlmPreset = saved.freeLlmPreset;
         if (saved.account) state.account = saved.account;
         if (saved.googleClientId) state.googleClientId = saved.googleClientId;
       } catch (e) {}
@@ -747,6 +786,8 @@
           sessions: state.sessions,
           keys: state.keys,
           models: state.models,
+          freeLlmUrl: state.freeLlmUrl,
+          freeLlmPreset: state.freeLlmPreset,
           account: state.account,
           googleClientId: state.googleClientId
         }));
@@ -755,12 +796,22 @@
       refreshConnectionBadges();
     }
 
+    function applyFreeLlmPreset() {
+      const preset = document.getElementById('preset-freellm').value;
+      if (FREE_LLM_PRESETS[preset]) {
+        document.getElementById('url-freellm').value = FREE_LLM_PRESETS[preset].url;
+        document.getElementById('model-freellm').value = FREE_LLM_PRESETS[preset].model;
+      }
+    }
+
     function exportBackupJson() {
       const payload = {
         app: 'eto agentAi',
         exportedAt: new Date().toISOString(),
         account: state.account,
         googleClientId: state.googleClientId,
+        freeLlmUrl: state.freeLlmUrl,
+        freeLlmPreset: state.freeLlmPreset,
         models: state.models,
         keys: state.keys,
         sessions: state.sessions
@@ -782,7 +833,9 @@
           const data = JSON.parse(ev.target.result || '{}');
           if (Array.isArray(data.sessions)) state.sessions = data.sessions;
           if (data.keys && typeof data.keys === 'object') state.keys = data.keys;
-          if (data.models && typeof data.models === 'object') state.models = data.models;
+          if (data.models && typeof data.models === 'object') state.models = { freellm: 'openai', ...data.models };
+          if (typeof data.freeLlmUrl === 'string') state.freeLlmUrl = data.freeLlmUrl;
+          if (typeof data.freeLlmPreset === 'string') state.freeLlmPreset = data.freeLlmPreset;
           if ('account' in data) state.account = data.account;
           if (typeof data.googleClientId === 'string') state.googleClientId = data.googleClientId;
           state.currentSessionId = state.sessions[0]?.id || null;
@@ -902,11 +955,12 @@
     }
 
     function refreshConnectionBadges() {
-      const providers = ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'];
-      const connected = providers.filter(p => Boolean((state.keys[p] || '').trim()));
+      const paidProviders = ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'];
+      const connectedPaid = paidProviders.filter(p => Boolean((state.keys[p] || '').trim()));
+      const hasFreeLlm = Boolean((state.freeLlmUrl || '').trim());
 
       const dot = document.getElementById('header-conn-dot');
-      if (connected.length > 0) {
+      if (hasFreeLlm || connectedPaid.length > 0) {
         dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
       } else {
         dot.className = 'w-2 h-2 rounded-full bg-amber-400';
@@ -914,12 +968,13 @@
 
       const summaryEl = document.getElementById('sidebar-conn-summary');
       if (summaryEl) {
-        summaryEl.innerHTML = connected.length > 0
-          ? `<span class="text-emerald-400 font-medium">Terhubung (${connected.length}/5):</span> ${connected.map(p => AGENTS[p].name).join(', ')}`
-          : `Mode Simulasi Cerdas aktif. Tambahkan API Key Gemini atau agen lain di menu <strong>Koneksi AI</strong>.`;
+        const activeList = [...(hasFreeLlm ? ['Free LLM API'] : []), ...connectedPaid.map(p => AGENTS[p].name)];
+        summaryEl.innerHTML = activeList.length > 0
+          ? `<span class="text-emerald-400 font-medium">Aktif (${activeList.length}):</span> ${activeList.join(', ')}`
+          : `Mode Simulasi Cerdas aktif. Atur Free LLM API atau API Key di menu <strong>Koneksi AI</strong>.`;
       }
 
-      providers.forEach(p => {
+      paidProviders.forEach(p => {
         const el = document.getElementById('status-' + p);
         if (!el) return;
         if ((state.keys[p] || '').trim()) {
@@ -932,21 +987,62 @@
       });
     }
 
+    async function callFreeLlmEndpoint(endpointUrl, modelName, apiKey, promptText) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+      const res = await fetch(endpointUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model: modelName || 'openai',
+          messages: [{ role: 'user', content: promptText }]
+        })
+      });
+      const data = await res.json();
+      const reply = data?.choices?.[0]?.message?.content;
+      if (!res.ok || !reply) {
+        throw new Error(data?.error?.message || `HTTP ${res.status}`);
+      }
+      return reply;
+    }
+
     async function testConnection(provider) {
+      const box = document.getElementById('conn-test-result');
+      box.classList.remove('hidden');
+
+      if (provider === 'freellm') {
+        const url = document.getElementById('url-freellm').value.trim();
+        const model = document.getElementById('model-freellm').value.trim() || 'openai';
+        const apiKey = document.getElementById('key-freellm').value.trim();
+        if (!url) {
+          box.className = 'p-2.5 rounded-xl text-xs border bg-amber-950/50 border-amber-700/50 text-amber-200';
+          box.textContent = 'Masukkan Endpoint URL Free LLM API terlebih dahulu.';
+          return;
+        }
+        box.className = 'p-2.5 rounded-xl text-xs border bg-slate-800/80 border-slate-700 text-slate-200';
+        box.textContent = `Menguji koneksi ke Free LLM API (${model})...`;
+        try {
+          const reply = await callFreeLlmEndpoint(url, model, apiKey, 'Balas dengan satu kata: OK');
+          box.className = 'p-2.5 rounded-xl text-xs border bg-emerald-950/60 border-emerald-700/60 text-emerald-200';
+          box.textContent = `Free LLM API terhubung! Respons: "${reply.slice(0, 40)}"`;
+        } catch (err) {
+          box.className = 'p-2.5 rounded-xl text-xs border bg-rose-950/60 border-rose-700/60 text-rose-200';
+          box.textContent = `Gagal terhubung ke Free LLM API: ${err.message}`;
+        }
+        return;
+      }
+
       const keyInput = document.getElementById('key-' + provider);
       const modelSelect = document.getElementById('model-' + provider);
       const apiKey = (keyInput ? keyInput.value : '').trim();
       const modelName = modelSelect ? modelSelect.value : AGENTS[provider].defaultModel;
-      const box = document.getElementById('conn-test-result');
 
       if (!apiKey) {
-        box.classList.remove('hidden');
         box.className = 'p-2.5 rounded-xl text-xs border bg-amber-950/50 border-amber-700/50 text-amber-200';
         box.textContent = `Masukkan API Key ${AGENTS[provider].name} terlebih dahulu sebelum menguji koneksi.`;
         return;
       }
 
-      box.classList.remove('hidden');
       box.className = 'p-2.5 rounded-xl text-xs border bg-slate-800/80 border-slate-700 text-slate-200';
       box.textContent = `Menguji koneksi ke ${AGENTS[provider].name} (${modelName})...`;
 
@@ -973,20 +1069,26 @@
       }
 
       box.className = 'p-2.5 rounded-xl text-xs border bg-indigo-950/50 border-indigo-700/50 text-indigo-200';
-      box.textContent = `Kunci ${AGENTS[provider].name} (${modelName}) siap disimpan. Catatan: beberapa endpoint pihak ketiga membatasi panggilan langsung dari browser (CORS) sehingga akan otomatis memakai mode simulasi jika diblokir browser.`;
+      box.textContent = `Kunci ${AGENTS[provider].name} (${modelName}) siap disimpan.`;
     }
 
     function detectBestAgent(text) {
       const q = text.toLowerCase();
+      if (state.selectedNeed === 'free_llm') return { agent: 'freellm', reason: 'Profil Kebutuhan: Free LLM API' };
       if (state.selectedNeed === 'activity_report') return { agent: 'claude', reason: 'Profil Kebutuhan: Laporan Kegiatan' };
       if (state.selectedNeed === 'data_analysis') return { agent: 'deepseek', reason: 'Profil Kebutuhan: Analisis Data' };
       if (state.selectedNeed === 'official_summary') return { agent: 'gemini', reason: 'Profil Kebutuhan: Ringkasan Resmi' };
+      if (/(gratis|free llm|freellm|openrouter|pollinations)/.test(q)) return { agent: 'freellm', reason: 'Terdeteksi permintaan Free LLM API' };
       if (/(laporan kegiatan|pelaksanaan kegiatan|kunjungan lapangan|dokumentasi kegiatan)/.test(q)) return { agent: 'claude', reason: 'Terdeteksi penyusunan laporan kegiatan' };
       if (/(analisis data|rekap data|statistik|grafik|anomali|persentase|indeks|realisasi|csv|xlsx|tabel)/.test(q)) return { agent: 'deepseek', reason: 'Terdeteksi analisis data & evaluasi angka' };
       if (/(ringkasan resmi|notulensi|kesimpulan rapat|poin keputusan|ringkas resmi)/.test(q)) return { agent: 'gemini', reason: 'Terdeteksi penyusunan ringkasan resmi' };
       if (/(kode|code|python|javascript|html|sql|bug|error|rumus|excel|hitung|algoritma)/.test(q)) return { agent: 'deepseek', reason: 'Terdeteksi tugas pemrograman / logika teknis' };
       if (/(cari|riset|terbaru|berita|sumber|referensi|regulasi|aturan|fakta|bandingkan harga)/.test(q)) return { agent: 'perplexity', reason: 'Terdeteksi kebutuhan riset & verifikasi informasi' };
       if (/(surat|laporan|naskah|analisis|evaluasi|kebijakan|esay|artikel|formal)/.test(q)) return { agent: 'claude', reason: 'Terdeteksi penulisan dokumen terstruktur & analisis' };
+      // Jika tidak ada API Key Gemini namun Free LLM API tersedia, arahkan otomatis ke Free LLM API agar mendapat jawaban AI asli
+      if (!(state.keys.gemini || '').trim() && (state.freeLlmUrl || '').trim()) {
+        return { agent: 'freellm', reason: 'Auto-Routing ke Free LLM API (Endpoint Gratis Aktif)' };
+      }
       return { agent: 'gemini', reason: 'Terdeteksi tugas produktivitas & ringkasan umum' };
     }
 
@@ -994,7 +1096,7 @@
       const need = NEEDS.find(n => n.id === state.selectedNeed) || NEEDS[0];
       document.getElementById('active-need-desc').textContent = need.desc;
       document.getElementById('active-need-agent').textContent = state.compareMode
-        ? 'Mode Bandingkan (5 Agen)'
+        ? 'Mode Bandingkan'
         : (state.selectedAgent === 'auto'
             ? (need.agent === 'auto' ? 'Auto-Agent' : `Auto-Agent → ${AGENTS[need.agent].name}`)
             : AGENTS[state.selectedAgent].name);
@@ -1003,8 +1105,8 @@
     function renderBars() {
       document.getElementById('agent-bar').innerHTML = Object.values(AGENTS).map(a => {
         const active = state.selectedAgent === a.id && !state.compareMode;
-        const hasKey = Boolean((state.keys[a.id] || '').trim());
-        const dot = hasKey ? ' • ●' : '';
+        const isReady = a.id === 'freellm' ? Boolean((state.freeLlmUrl || '').trim()) : Boolean((state.keys[a.id] || '').trim());
+        const dot = isReady ? ' • ●' : '';
         return `<button onclick="selectAgent('${a.id}')" class="px-3 h-8 rounded-full text-xs font-medium shrink-0 border transition ${active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'}">${a.name}${dot}</button>`;
       }).join('');
 
@@ -1019,8 +1121,7 @@
     function selectAgent(id) {
       state.compareMode = false;
       state.selectedAgent = id;
-      document.getElementById('btn-compare')?.classList.remove('bg-indigo-600', 'text-white');
-      document.getElementById('header-subtitle').textContent = id === 'auto' ? 'Auto-Agent + MarkItDown OCR' : 'Agen: ' + AGENTS[id].name;
+      document.getElementById('header-subtitle').textContent = id === 'auto' ? 'Auto-Agent + FreeLLMAPI + MarkItDown' : 'Agen: ' + AGENTS[id].name;
       renderBars();
     }
 
@@ -1035,19 +1136,6 @@
       selectNeed(needId);
       document.getElementById('prompt-input').value = text;
       handleSend(new Event('submit'));
-    }
-
-    function toggleCompareMode() {
-      state.compareMode = !state.compareMode;
-      const btn = document.getElementById('btn-compare');
-      if (state.compareMode) {
-        btn?.classList.add('bg-indigo-600', 'text-white');
-        document.getElementById('header-subtitle').textContent = 'Mode Bandingkan 5 Agen';
-      } else {
-        btn?.classList.remove('bg-indigo-600', 'text-white');
-        document.getElementById('header-subtitle').textContent = state.selectedAgent === 'auto' ? 'Auto-Agent + MarkItDown OCR' : 'Agen: ' + AGENTS[state.selectedAgent].name;
-      }
-      renderBars();
     }
 
     function buildEffectivePrompt(rawPrompt, attachment) {
@@ -1066,6 +1154,14 @@
       const effectivePrompt = buildEffectivePrompt(prompt, attachment);
       const apiKey = (state.keys[agentId] || '').trim();
       const modelName = (state.models && state.models[agentId]) || AGENTS[agentId]?.defaultModel;
+
+      if (agentId === 'freellm' && (state.freeLlmUrl || '').trim()) {
+        try {
+          return await callFreeLlmEndpoint(state.freeLlmUrl.trim(), modelName || 'openai', apiKey, effectivePrompt);
+        } catch (err) {
+          return `**[Free LLM API — Gagal Menghubungi Endpoint]**\nDetail: ${err.message}\nPastikan Endpoint URL di menu **Koneksi AI** aktif atau coba ganti preset (misalnya Pollinations AI).`;
+        }
+      }
 
       if (agentId === 'gemini' && apiKey) {
         try {
@@ -1095,6 +1191,7 @@
       }
 
       const intros = {
+        freellm: `**[Free LLM API — Simulasi]**\nEndpoint belum dikonfigurasi. Atur URL Free LLM API di menu **Koneksi AI**.${mdNote}`,
         gemini: `**[Gemini (${modelName || 'gemini-2.5-flash'}) — Ringkasan & Produktivitas]**\nBerikut langkah praktis untuk "${prompt}":${mdNote}\n1. Identifikasi tujuan utama dan output yang dibutuhkan.\n2. Susun struktur poin inti secara ringkas agar mudah ditindaklanjuti.\n3. Lakukan validasi akhir sebelum dibagikan.`,
         chatgpt: `**[ChatGPT — Eksplorasi & Solusi]**\nUntuk permintaan "${prompt}", berikut pendekatan yang bisa langsung Anda pakai:${mdNote}\n• **Opsi Utama:** Fokus pada kejelasan pesan dan struktur yang mudah dipahami pembaca.\n• **Alternatif:** Kembangkan variasi format agar lebih menarik dan relevan dengan konteks Anda.`,
         claude: `**[Claude — Analisis Terstruktur]**\nMenanggapi "${prompt}", berikut kerangka pembahasan mendalam:${mdNote}\n1. **Konteks & Latar Belakang:** Menetapkan ruang lingkup permasalahan secara objektif.\n2. **Poin Analisis:** Menguraikan komponen kunci beserta pertimbangan risiko dan manfaatnya.\n3. **Rekomendasi:** Langkah implementasi bertahap yang terukur.`,
@@ -1124,24 +1221,15 @@
       session.messages.push({ role: 'user', text: finalText, attachmentName: attachment ? attachment.name : null });
       renderMessages();
 
-      if (state.compareMode) {
-        const ids = ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'];
-        const results = await Promise.all(ids.map(async id => ({
-          agent: id,
-          text: await callRealOrSimulatedAgent(id, finalText, attachment)
-        })));
-        session.messages.push({ role: 'compare', results });
-      } else {
-        let targetAgent = state.selectedAgent;
-        let routeReason = '';
-        if (targetAgent === 'auto') {
-          const routed = detectBestAgent(finalText);
-          targetAgent = routed.agent;
-          routeReason = routed.reason;
-        }
-        const reply = await callRealOrSimulatedAgent(targetAgent, finalText, attachment);
-        session.messages.push({ role: 'assistant', agent: targetAgent, reason: routeReason, text: reply });
+      let targetAgent = state.selectedAgent;
+      let routeReason = '';
+      if (targetAgent === 'auto') {
+        const routed = detectBestAgent(finalText);
+        targetAgent = routed.agent;
+        routeReason = routed.reason;
       }
+      const reply = await callRealOrSimulatedAgent(targetAgent, finalText, attachment);
+      session.messages.push({ role: 'assistant', agent: targetAgent, reason: routeReason, text: reply });
 
       saveState();
       renderMessages();
@@ -1172,9 +1260,6 @@
             : '';
           return `<div class="max-w-3xl mx-auto flex justify-end"><div class="bg-indigo-600 text-white px-4 py-2.5 rounded-2xl rounded-br-sm text-sm max-w-[85%]">${m.text}${badge}</div></div>`;
         }
-        if (m.role === 'compare') {
-          return `<div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-2.5">${m.results.map(r => `<div class="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-xs space-y-1.5"><div class="font-bold text-indigo-400">${AGENTS[r.agent].name}</div><div class="text-slate-200 leading-relaxed">${formatMarkdownSimple(r.text)}</div></div>`).join('')}</div>`;
-        }
         return `<div class="max-w-3xl mx-auto space-y-1.5">${m.reason ? `<div class="text-[11px] text-emerald-400 bg-emerald-950/50 border border-emerald-800/50 px-2.5 py-1 rounded-lg inline-block">Auto-Routing → <strong>${AGENTS[m.agent].name}</strong> (${m.reason})</div>` : ''}<div class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 text-sm text-slate-100 leading-relaxed"><div class="text-xs font-bold text-indigo-400 mb-1">${AGENTS[m.agent].name}</div><div>${formatMarkdownSimple(m.text)}</div></div></div>`;
       }).join('');
       container.scrollTop = container.scrollHeight;
@@ -1190,7 +1275,7 @@
     function exportChat() {
       const session = state.sessions.find(s => s.id === state.currentSessionId);
       if (!session) return;
-      const md = session.messages.map(m => m.role === 'user' ? `### Anda\n${m.text}` : `### ${m.agent || 'Compare'}\n${m.text || ''}`).join('\n\n');
+      const md = session.messages.map(m => m.role === 'user' ? `### Anda\n${m.text}` : `### ${m.agent || 'Agent'}\n${m.text || ''}`).join('\n\n');
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
       a.download = 'eto_agentAi_Chat.md';
@@ -1211,6 +1296,11 @@
       }
       if (id === 'modal-keys') {
         document.getElementById('conn-test-result').classList.add('hidden');
+        document.getElementById('preset-freellm').value = state.freeLlmPreset || 'pollinations';
+        document.getElementById('url-freellm').value = state.freeLlmUrl || 'https://text.pollinations.ai/openai';
+        document.getElementById('model-freellm').value = (state.models && state.models.freellm) || 'openai';
+        document.getElementById('key-freellm').value = state.keys.freellm || '';
+
         ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'].forEach(k => {
           document.getElementById('key-' + k).value = state.keys[k] || '';
           const modelSel = document.getElementById('model-' + k);
@@ -1230,6 +1320,11 @@
 
     function saveKeys() {
       state.models = state.models || {};
+      state.freeLlmPreset = document.getElementById('preset-freellm').value;
+      state.freeLlmUrl = document.getElementById('url-freellm').value.trim();
+      state.models.freellm = document.getElementById('model-freellm').value.trim() || 'openai';
+      state.keys.freellm = document.getElementById('key-freellm').value.trim();
+
       ['gemini', 'chatgpt', 'claude', 'deepseek', 'perplexity'].forEach(k => {
         state.keys[k] = document.getElementById('key-' + k).value.trim();
         const modelSel = document.getElementById('model-' + k);
