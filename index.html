@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>EtoAi (eagent) — Multi-Model Free AI, Pinokio, File Generator & MarkItDown</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: { 850: '#172033', 950: '#0a0f1d' }
+          }
+        }
+      }
+    };
+  </script>
+  <!-- Marked.js untuk render Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Mermaid.js untuk render Diagram Napkin / Visual AI -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- PDF.js untuk baca teks PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Tesseract.js untuk OCR PDF Scan -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- Mammoth.js untuk baca DOCX -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <!-- Turndown untuk konversi HTML DOCX ke Markdown -->
+  <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+  <!-- SheetJS untuk baca & buat XLSX / CSV -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <!-- docx.js untuk membuat file Word (.docx) asli -->
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+  <!-- jsPDF & AutoTable untuk membuat file PDF (.pdf) rapi -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.45); }
+    .prose pre { background: #0f172a; border: 1px solid #1e293b; border-radius: 0.5rem; padding: 0.75rem; overflow-x: auto; margin: 0.5rem 0; font-size: 0.82rem; }
+    .prose code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; background: rgba(148,163,184,0.15); padding: 0.1rem 0.3rem; border-radius: 0.25rem; font-size: 0.85em; }
+    .prose pre code { background: transparent; padding: 0; }
+    .prose table { width: 100%; border-collapse: collapse; margin: 0.65rem 0; font-size: 0.85rem; }
+    .prose th, .prose td { border: 1px solid #334155; padding: 0.4rem 0.6rem; text-align: left; }
+    .prose th { background: rgba(30, 41, 59, 0.7); font-weight: 600; }
+    .prose ul { list-style-type: disc; padding-left: 1.25rem; margin: 0.4rem 0; }
+    .prose ol { list-style-type: decimal; padding-left: 1.25rem; margin: 0.4rem 0; }
+    .prose p { margin: 0.4rem 0; line-height: 1.6; }
+    .prose h1, .prose h2, .prose h3 { font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.35rem; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 0.3; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.1); } }
+    .dot-1 { animation: pulse-dot 1.2s infinite ease-in-out 0s; }
+    .dot-2 { animation: pulse-dot 1.2s infinite ease-in-out 0.2s; }
+    .dot-3 { animation: pulse-dot 1.2s infinite ease-in-out 0.4s; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 h-dvh flex flex-col overflow-hidden selection:bg-indigo-500 selection:text-white">
+
+  <!-- TOP NAVBAR -->
+  <header class="h-14 border-b border-slate-800/80 bg-slate-900/90 backdrop-blur px-3 md:px-5 flex items-center justify-between gap-2 shrink-0 z-20">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-400 flex items-center justify-center font-black text-slate-950 text-sm shadow-lg shadow-indigo-500/20 shrink-0">
+        E
+      </div>
+      <div class="truncate">
+        <div class="flex items-center gap-1.5">
+          <span class="font-bold text-sm md:text-base tracking-tight">EtoAi</span>
+          <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">eagent</span>
+        </div>
+        <p class="text-[10px] text-slate-400 hidden sm:block">Free Multi-AI, Pinokio, Generator Word/Excel/PDF/Image &amp; MarkItDown</p>
+      </div>
+    </div>
+
+    <!-- MODEL & AGENT SELECTOR -->
+    <div class="flex items-center gap-1.5 md:gap-2 flex-1 max-w-lg justify-end">
+      <select id="modelSelect" aria-label="Pilih Model atau Agen AI"
+        class="bg-slate-800/90 hover:bg-slate-800 text-xs md:text-sm text-slate-100 border border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-[195px] sm:max-w-[275px] truncate">
+        <optgroup label="⚡ Otomatis (Anti-Hang)">
+          <option value="smart-router">Smart Router (Auto-Fallback Gratis)</option>
+        </optgroup>
+        <optgroup label="🆓 Tanpa API Key (Langsung Pakai)">
+          <option value="pollinations:openai">Free LLM — GPT-4o Mini (No Key)</option>
+          <option value="pollinations:claude">Free LLM — Claude Hybrid (No Key)</option>
+          <option value="pollinations:deepseek">Free LLM — DeepSeek R1 (No Key)</option>
+          <option value="pollinations:searchgpt">Perplexity Search Mode (No Key)</option>
+          <option value="pollinations:qwen-coder">Free LLM — Qwen 2.5 Coder (No Key)</option>
+        </optgroup>
+        <optgroup label="🎨 AI Image Generator (Gratis)">
+          <option value="image:flux">Image AI — Flux Realism (No Key)</option>
+          <option value="image:turbo">Image AI — Flux Turbo Cepat (No Key)</option>
+        </optgroup>
+        <optgroup label="🍍 Pinokio AI Browser (GitHub pinokiofactory)">
+          <option value="pinokio:agent">Pinokio AI — Script &amp; Local Launcher</option>
+          <option value="pinokio:api">Pinokio Local API (localhost:42000)</option>
+        </optgroup>
+        <optgroup label="🤖 Free Claude Code (GitHub Repo)">
+          <option value="fcc:claude-sonnet-4-6">Free Claude Code — Sonnet 4.6</option>
+          <option value="fcc:claude-opus-4-7">Free Claude Code — Opus 4.7</option>
+          <option value="fcc:claude-haiku-4-5-20251001">Free Claude Code — Haiku 4.5</option>
+        </optgroup>
+        <optgroup label="🧠 DeepSeek & Perplexity (GitHub / Free)">
+          <option value="deepseek:deepseek-chat">DeepSeek V3 (API / Local)</option>
+          <option value="deepseek:deepseek-reasoner">DeepSeek R1 Reasoner</option>
+          <option value="perplexity:sonar">Perplexity Sonar / Perplexica Local</option>
+        </optgroup>
+        <optgroup label="🦙 Ollama Lokal (GitHub ollama/ollama)">
+          <option value="ollama:llama3.2">Ollama — Llama 3.2 (Local)</option>
+          <option value="ollama:deepseek-r1">Ollama — DeepSeek R1 (Local)</option>
+          <option value="ollama:qwen2.5-coder">Ollama — Qwen 2.5 Coder (Local)</option>
+        </optgroup>
+        <optgroup label="✨ Google Gemini & Groq (Free Tier)">
+          <option value="gemini:gemini-2.5-flash">Gemini 2.5 Flash (Cepat &amp; Multimodal)</option>
+          <option value="gemini:gemini-2.5-pro">Gemini 2.5 Pro (Analisis Mendalam)</option>
+          <option value="groq:llama-3.3-70b-versatile">Groq — Llama 3.3 70B</option>
+          <option value="openrouter:deepseek/deepseek-r1:free">OpenRouter — DeepSeek R1 (:free)</option>
+        </optgroup>
+        <optgroup label="🎬 Creative & Visual Studio (GitHub AI)">
+          <option value="studio:wan-video">Wan-Video 2.1/2.2 (Text/Image-to-Video)</option>
+          <option value="studio:voice-studio">Voice Studio (Kokoro/GPT-SoVITS TTS)</option>
+          <option value="studio:comfyui">ComfyUI Node Workflow &amp; API</option>
+          <option value="studio:autoclip">AutoClip AI (Highlight &amp; Subtitle)</option>
+          <option value="studio:remotion">Remotion Video Code (React TSX)</option>
+          <option value="studio:napkin">Napkin AI Visual (Mermaid Diagram)</option>
+          <option value="studio:gamma">Gamma Slide Deck (Presentasi Otomatis)</option>
+        </optgroup>
+      </select>
+
+      <button id="btnOpenAccounts" title="Hubungkan Akun & GitHub Repo AI"
+        class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium px-2.5 py-1.5 rounded-lg transition shrink-0">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span class="hidden sm:inline">Akun &amp; GitHub</span>
+        <span class="sm:hidden">Akun</span>
+      </button>
+
+      <button id="btnToggleDocs" title="Panel MarkItDown & File Studio"
+        class="lg:hidden flex items-center gap-1 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-medium px-2.5 py-1.5 rounded-lg transition shrink-0 relative">
+        <span>📄</span>
+        <span id="docBadgeMobile" class="hidden absolute -top-1 -right-1 w-4 h-4 rounded-full bg-indigo-500 text-white text-[10px] flex items-center justify-center">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- LEFT/CENTER: CHAT & AGENT STUDIO AREA -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-950">
+
+      <!-- TASK PROFILE & GITHUB AGENT SHORTCUTS BAR -->
+      <div class="border-b border-slate-800/70 bg-slate-900/40 px-3 md:px-5 py-2 flex items-center gap-1.5 overflow-x-auto shrink-0">
+        <span class="text-[11px] text-slate-400 mr-0.5 shrink-0">Agen:</span>
+        <button data-profile="general" data-model="" class="profile-chip active bg-indigo-600 text-white text-xs px-2.5 py-1 rounded-full font-medium shrink-0 transition">💬 Umum</button>
+        <button data-profile="file-maker" data-model="" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-emerald-300 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-full shrink-0 transition">📦 Buat File</button>
+        <button data-profile="image-gen" data-model="image:flux" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-pink-300 border border-pink-500/30 text-xs px-2.5 py-1 rounded-full shrink-0 transition">🎨 Gambar AI</button>
+        <button data-profile="laporan" data-model="" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">📋 Laporan</button>
+        <button data-profile="pinokio" data-model="pinokio:agent" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">🍍 Pinokio AI</button>
+        <button data-profile="coding" data-model="fcc:claude-sonnet-4-6" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">🤖 Claude Code</button>
+        <button data-profile="perplexity" data-model="perplexity:sonar" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">🔍 Perplexity</button>
+        <button data-profile="wan-video" data-model="studio:wan-video" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">🎬 Wan-Video</button>
+        <button data-profile="voice-studio" data-model="studio:voice-studio" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">🎙️ Voice Studio</button>
+        <button data-profile="comfyui" data-model="studio:comfyui" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">🧩 ComfyUI</button>
+        <button data-profile="autoclip" data-model="studio:autoclip" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">✂️ AutoClip</button>
+        <button data-profile="remotion" data-model="studio:remotion" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">⚛️ Remotion</button>
+        <button data-profile="napkin" data-model="studio:napkin" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">📊 Napkin</button>
+        <button data-profile="gamma" data-model="studio:gamma" class="profile-chip bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs px-2.5 py-1 rounded-full shrink-0 transition">📑 Gamma</button>
+        <div class="ml-auto flex items-center gap-1 pl-2 shrink-0">
+          <button id="btnExportChat" title="Ekspor Riwayat Chat JSON" class="text-[11px] text-slate-400 hover:text-slate-200 px-2 py-1 rounded hover:bg-slate-800">Ekspor</button>
+          <button id="btnClearChat" title="Bersihkan Chat" class="text-[11px] text-rose-400 hover:text-rose-300 px-2 py-1 rounded hover:bg-slate-800">Reset</button>
+        </div>
+      </div>
+
+      <!-- CHAT MESSAGES CONTAINER -->
+      <div id="chatContainer" class="flex-1 overflow-y-auto px-3 md:px-6 py-4 space-y-4">
+        <!-- Welcome Banner -->
+        <div class="max-w-3xl mx-auto bg-slate-900/70 border border-slate-800 rounded-2xl p-4 md:p-5 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h1 class="text-base md:text-lg font-bold text-white">EtoAi (<span class="text-indigo-400">eagent</span>) — All-in-One Open-Source &amp; Free AI Hub</h1>
+              <p class="text-xs md:text-sm text-slate-300 mt-1 leading-relaxed">
+                Setiap agen kini dapat <strong>membaca multi-dokumen (MarkItDown + OCR)</strong> sekaligus <strong>membuat &amp; mengunduh file Word (.docx), Excel (.xlsx), PDF (.pdf), Image (.png), CSV, JSON, &amp; HTML</strong> langsung dari setiap jawaban AI!
+              </p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3.5 text-xs">
+            <div class="bg-slate-850/90 border border-slate-800 p-2.5 rounded-xl">
+              <div class="font-semibold text-emerald-400">📦 Ekspor Multi-File</div>
+              <p class="text-slate-400 text-[11px] mt-0.5">Setiap jawaban AI punya tombol 1-klik unduh Word, Excel, PDF, CSV &amp; MD.</p>
+            </div>
+            <div class="bg-slate-850/90 border border-slate-800 p-2.5 rounded-xl">
+              <div class="font-semibold text-pink-400">🎨 Image AI Gratis</div>
+              <p class="text-slate-400 text-[11px] mt-0.5">Generate gambar Flux Realism/Turbo atau ketik <code>/gambar [deskripsi]</code>.</p>
+            </div>
+            <div class="bg-slate-850/90 border border-slate-800 p-2.5 rounded-xl">
+              <div class="font-semibold text-amber-400">🍍 Pinokio &amp; GitHub AI</div>
+              <p class="text-slate-400 text-[11px] mt-0.5">Pinokio AI, Claude Code, DeepSeek, Perplexity, Wan-Video, ComfyUI &amp; Ollama.</p>
+            </div>
+            <div class="bg-slate-850/90 border border-slate-800 p-2.5 rounded-xl">
+              <div class="font-semibold text-cyan-400">📄 MarkItDown Multi</div>
+              <p class="text-slate-400 text-[11px] mt-0.5">Unggah banyak PDF (teks/scan), DOCX, XLSX, CSV &amp; gabungkan ke konteks.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE STATUS / PROCESSING INDICATOR BAR -->
+      <div id="statusBar" class="hidden mx-3 md:mx-6 mb-2 bg-indigo-950/70 border border-indigo-500/40 rounded-xl px-3.5 py-2 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="flex items-center gap-1 shrink-0">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 dot-1"></span>
+            <span class="w-2 h-2 rounded-full bg-indigo-400 dot-2"></span>
+            <span class="w-2 h-2 rounded-full bg-indigo-400 dot-3"></span>
+          </div>
+          <div class="truncate">
+            <span id="statusText" class="text-xs font-medium text-indigo-200">Sedang memproses...</span>
+            <span id="statusTimer" class="text-[11px] font-mono text-indigo-400 ml-1.5">(0.0d)</span>
+          </div>
+        </div>
+        <button id="btnCancelRequest" class="text-xs font-semibold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 px-2.5 py-1 rounded-lg transition shrink-0">
+          Batalkan
+        </button>
+      </div>
+
+      <!-- ACTIVE ATTACHED MARKDOWN CHIP -->
+      <div id="attachedDocBanner" class="hidden mx-3 md:mx-6 mb-2 bg-emerald-950/50 border border-emerald-500/30 rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2 truncate">
+          <span class="text-emerald-400 font-semibold shrink-0">📎 Konteks Dokumen Aktif:</span>
+          <span id="attachedDocName" class="text-slate-200 truncate font-mono text-[11px]">dokumen.md</span>
+          <span id="attachedDocSize" class="text-slate-400 text-[10px] shrink-0"></span>
+        </div>
+        <button id="btnDetachDoc" class="text-slate-400 hover:text-rose-300 text-xs px-1.5">✕</button>
+      </div>
+
+      <!-- INPUT COMPOSER -->
+      <div class="p-3 md:px-6 md:pb-4 pt-1 bg-slate-950 border-t border-slate-800/80 shrink-0">
+        <form id="chatForm" class="max-w-4xl mx-auto flex items-end gap-2">
+          <label for="quickFileInput" title="Unggah Banyak Dokumen untuk MarkItDown"
+            class="cursor-pointer bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 p-2.5 rounded-xl transition shrink-0 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+            </svg>
+            <input id="quickFileInput" type="file" accept=".pdf,.docx,.xlsx,.xls,.csv,.json,.md,.txt" multiple class="hidden" />
+          </label>
+
+          <div class="flex-1 relative">
+            <textarea id="promptInput" rows="1" placeholder="Minta buatkan tabel Excel RAB, surat Word, laporan PDF, gambar (/gambar ...), atau skrip Pinokio..."
+              class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none resize-none max-h-36 leading-relaxed"></textarea>
+          </div>
+
+          <button id="btnSend" type="submit"
+            class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition shrink-0 flex items-center gap-1.5 shadow-lg shadow-indigo-600/20">
+            <span>Kirim</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
+        </form>
+      </div>
+    </main>
+
+    <!-- RIGHT SIDEBAR / DRAWER: CLIENT-SIDE MARKITDOWN & FILE STUDIO -->
+    <aside id="docDrawer"
+      class="fixed inset-y-0 right-0 w-full sm:w-96 lg:static lg:w-[375px] bg-slate-900 border-l border-slate-800 flex flex-col z-30 transform translate-x-full lg:translate-x-0 transition-transform duration-200">
+      <div class="h-14 border-b border-slate-800 px-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-base">📄</span>
+          <div>
+            <h2 class="text-sm font-bold text-white">MarkItDown &amp; File Studio</h2>
+            <p class="text-[10px] text-slate-400">Baca Multi-File &amp; Ekspor Word, Excel, PDF</p>
+          </div>
+        </div>
+        <button id="btnCloseDocs" class="lg:hidden text-slate-400 hover:text-white p-1.5 rounded-lg bg-slate-800">✕</button>
+      </div>
+
+      <div class="p-4 flex-1 overflow-y-auto space-y-3.5">
+        <!-- Dropzone -->
+        <div id="dropZone"
+          class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-950/60 rounded-2xl p-4 text-center cursor-pointer transition">
+          <div class="text-2xl mb-1">📥</div>
+          <p class="text-xs font-semibold text-slate-200">Klik atau seret banyak file ke sini</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">.pdf (teks/scan), .docx, .xlsx, .csv, .json, .md</p>
+          <input id="sidebarFileInput" type="file" accept=".pdf,.docx,.xlsx,.xls,.csv,.json,.md,.txt" multiple class="hidden" />
+        </div>
+
+        <!-- OCR Option Toggle -->
+        <div class="flex items-center justify-between bg-slate-850 border border-slate-800 rounded-xl px-3 py-2 text-xs">
+          <div>
+            <div class="font-medium text-slate-200">Auto-OCR PDF Scan</div>
+            <div class="text-[10px] text-slate-400">Tesseract.js (Bahasa Indonesia + Inggris)</div>
+          </div>
+          <input id="chkAutoOcr" type="checkbox" checked class="w-4 h-4 accent-indigo-500 rounded cursor-pointer" />
+        </div>
+
+        <!-- Conversion Progress -->
+        <div id="convertStatusBox" class="hidden bg-amber-950/50 border border-amber-500/40 rounded-xl p-3 text-xs text-amber-200">
+          <div class="font-semibold flex items-center gap-2">
+            <span class="animate-spin">⏳</span>
+            <span id="convertStatusMsg">Mengonversi dokumen...</span>
+          </div>
+          <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div id="convertProgressBar" class="bg-amber-400 h-full w-1/3 transition-all duration-300"></div>
+          </div>
+        </div>
+
+        <!-- Multi-File Selector Chips -->
+        <div id="docFileTabs" class="hidden flex flex-wrap gap-1.5"></div>
+
+        <!-- Markdown Preview & Export Actions -->
+        <div id="markdownResultBox" class="hidden space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-emerald-400 truncate max-w-[190px]" id="convertedFileTitle">hasil.md</span>
+            <button id="btnCopyMd" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded-md">Salin MD</button>
+          </div>
+
+          <textarea id="markdownOutput" rows="8"
+            class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-[11px] text-slate-300 focus:outline-none focus:border-indigo-500 leading-relaxed"></textarea>
+
+          <!-- Direct Export Buttons for Editor Content -->
+          <div class="bg-slate-850/90 border border-slate-800 rounded-xl p-2.5 space-y-1.5">
+            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Ekspor Dokumen Ini Ke:</p>
+            <div class="grid grid-cols-4 gap-1.5 text-[11px] font-medium">
+              <button id="btnExportEditorDocx" class="bg-blue-600/20 hover:bg-blue-600/35 border border-blue-500/40 text-blue-200 py-1.5 rounded-lg">📘 Word</button>
+              <button id="btnExportEditorXlsx" class="bg-emerald-600/20 hover:bg-emerald-600/35 border border-emerald-500/40 text-emerald-200 py-1.5 rounded-lg">📗 Excel</button>
+              <button id="btnExportEditorPdf" class="bg-rose-600/20 hover:bg-rose-600/35 border border-rose-500/40 text-rose-200 py-1.5 rounded-lg">📕 PDF</button>
+              <button id="btnDownloadMd" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 py-1.5 rounded-lg">📝 .MD</button>
+            </div>
+          </div>
+
+          <button id="btnAttachToChat"
+            class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2.5 rounded-xl transition shadow-md shadow-emerald-600/20">
+            ➕ Lampirkan Semua ke Konteks Chat AI
+          </button>
+
+          <!-- Quick Document Prompts -->
+          <div class="pt-1">
+            <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1.5">Aksi Cepat Dokumen:</p>
+            <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+              <button data-docprompt="Buatkan dokumen/tabel baru dengan meniru 100% format, struktur bagian, dan susunan kolom dari file contoh yang saya unggah." data-targetmodel="" class="doc-quick-btn bg-amber-600/25 hover:bg-amber-600/40 border border-amber-500/40 text-left px-2.5 py-1.5 rounded-lg text-amber-200 font-medium">✨ Tiru Format File Ini</button>
+              <button data-docprompt="Buat ringkasan eksekutif poin-poin utama dari semua dokumen terlampir." data-targetmodel="" class="doc-quick-btn bg-slate-800 hover:bg-slate-700 text-left px-2.5 py-1.5 rounded-lg text-slate-200">📌 Ringkas Poin</button>
+              <button data-docprompt="Gabungkan dan olah data dokumen terlampir menjadi tabel rekapitulasi terstruktur siap ekspor ke Excel." data-targetmodel="" class="doc-quick-btn bg-slate-800 hover:bg-slate-700 text-left px-2.5 py-1.5 rounded-lg text-slate-200">📗 Rekap Tabel Excel</button>
+              <button data-docprompt="Ubah isi dokumen ini menjadi alur diagram visual Mermaid (Napkin AI)." data-targetmodel="studio:napkin" class="doc-quick-btn bg-slate-800 hover:bg-slate-700 text-left px-2.5 py-1.5 rounded-lg text-slate-200">📊 Diagram Napkin</button>
+              <button data-docprompt="Susun draf laporan resmi lengkap berdasarkan semua dokumen terlampir." data-targetmodel="" class="doc-quick-btn bg-slate-800 hover:bg-slate-700 text-left px-2.5 py-1.5 rounded-lg text-slate-200">📘 Draf Word/PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- MODAL: KONEKSI AKUN AI GRATIS & GITHUB REPOSITORIES -->
+  <div id="accountsModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full max-h-[90dvh] flex flex-col shadow-2xl">
+      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-base text-white">Koneksi Akun AI Gratis, Pinokio &amp; GitHub</h3>
+          <p class="text-xs text-slate-400">Semua penyedia berbasis Free Tier / Open Source GitHub. Tersimpan lokal di browser Anda.</p>
+        </div>
+        <button id="btnCloseModal" class="text-slate-400 hover:text-white bg-slate-800 px-2.5 py-1 rounded-lg text-sm">✕</button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 text-xs">
+        <!-- Timeout Setting -->
+        <div class="bg-slate-850 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+          <div>
+            <div class="font-semibold text-slate-200">Batas Timeout Otomatis Anti-Hang</div>
+            <div class="text-[11px] text-slate-400">Otomatis beralih ke fallback model jika server lambat</div>
+          </div>
+          <select id="timeoutSelect" class="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100">
+            <option value="15000">15 Detik</option>
+            <option value="25000" selected>25 Detik (Rekomendasi)</option>
+            <option value="45000">45 Detik</option>
+            <option value="60000">60 Detik</option>
+          </select>
+        </div>
+
+        <!-- 1. Pinokio AI Browser (GitHub pinokiofactory/pinokio) -->
+        <div class="border border-yellow-500/40 bg-yellow-950/15 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between flex-wrap gap-1">
+            <span class="font-bold text-yellow-300 text-sm">1. Pinokio AI Computer (GitHub: pinokiofactory/pinokio)</span>
+            <div class="flex items-center gap-1.5">
+              <a href="pinokio://" class="text-[11px] bg-yellow-500/25 hover:bg-yellow-500/40 text-yellow-200 px-2.5 py-1 rounded-lg font-medium">Buka App Pinokio ↗</a>
+              <a href="https://github.com/pinokiofactory/pinokio" target="_blank" rel="noopener" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded-lg">GitHub ↗</a>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-300">
+            Jalankan 1-klik instalasi Wan2.2, ComfyUI, Kokoro TTS, Ollama, &amp; FaceFusion lewat Pinokio. Gunakan agen <strong>Pinokio AI</strong> untuk membuat skrip otomatis <code>pinokio.js</code> / <code>install.json</code> atau terhubung ke daemon lokal.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Pinokio Local Server URL</label>
+              <input id="inputPinokioUrl" type="text" value="http://localhost:42000" placeholder="http://localhost:42000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100" />
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Pinokio Repo / Launcher Cepat</label>
+              <div class="flex gap-1.5">
+                <a href="https://pinokio.computer" target="_blank" rel="noopener" class="flex-1 text-center bg-slate-800 hover:bg-slate-700 py-1.5 px-2 rounded-lg text-yellow-200">Pinokio Scripts ↗</a>
+                <button type="button" id="btnTestPinokio" class="bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-500/40 px-2.5 py-1.5 rounded-lg text-yellow-200">Cek Lokal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Free Claude Code (GitHub) -->
+        <div class="border border-amber-500/40 bg-amber-950/15 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between flex-wrap gap-1">
+            <span class="font-bold text-amber-300 text-sm">2. Free Claude Code (GitHub Repo)</span>
+            <a href="https://github.com/Alishahryar1/free-claude-code" target="_blank" rel="noopener" class="text-[11px] bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 px-2.5 py-1 rounded-lg">GitHub ↗</a>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Mode Endpoint</label>
+              <select id="fccModeSelect" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-slate-100">
+                <option value="hosted">Hosted Proxy (openapis.online)</option>
+                <option value="local">Local Server (localhost:8082)</option>
+                <option value="nvidia">NVIDIA NIM Direct (build.nvidia.com)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">API Key (Opsional untuk Hosted/Local)</label>
+              <input id="inputFccKey" type="password" placeholder="nvapi-... atau kosongkan" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-slate-100" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Ollama Lokal (GitHub ollama/ollama) -->
+        <div class="border border-slate-800 bg-slate-850/60 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between flex-wrap gap-1">
+            <span class="font-bold text-slate-200 text-sm">3. Ollama Local AI (GitHub: ollama/ollama)</span>
+            <a href="https://github.com/ollama/ollama" target="_blank" rel="noopener" class="text-[11px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg">GitHub ↗</a>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <input id="inputOllamaUrl" type="text" value="http://localhost:11434" placeholder="http://localhost:11434" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100" />
+            <input id="inputOllamaModel" type="text" value="llama3.2" placeholder="Nama model (misal: llama3.2, deepseek-r1)" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-slate-100" />
+          </div>
+          <p class="text-[10px] text-slate-400">Jalankan <code>OLLAMA_ORIGINS=* ollama serve</code> agar browser dapat terhubung langsung ke Ollama lokal.</p>
+        </div>
+
+        <!-- 4. DeepSeek & Perplexity / Perplexica -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="border border-slate-800 bg-slate-850/60 rounded-xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-sky-300 text-sm">4. DeepSeek (GitHub / Free)</span>
+              <a href="https://github.com/deepseek-ai/DeepSeek-R1" target="_blank" rel="noopener" class="text-[10px] bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded">Repo ↗</a>
+            </div>
+            <input id="inputDeepSeekKey" type="password" placeholder="DeepSeek API Key (opsional, fallback otomatis)" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-slate-100" />
+          </div>
+
+          <div class="border border-slate-800 bg-slate-850/60 rounded-xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-teal-300 text-sm">5. Perplexity / Perplexica</span>
+              <a href="https://github.com/ItzCrazyKns/Perplexica" target="_blank" rel="noopener" class="text-[10px] bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded">GitHub ↗</a>
+            </div>
+            <input id="inputPerplexityKey" type="password" placeholder="Perplexity Key atau http://localhost:3000" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-2 text-slate-100" />
+          </div>
+        </div>
+
+        <!-- 6. Google Gemini, Groq, OpenRouter -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div class="border border-slate-800 bg-slate-850/60 rounded-xl p-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-indigo-300">6. Gemini Free</span>
+              <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="text-[10px] text-indigo-400 underline">Key ↗</a>
+            </div>
+            <input id="inputGeminiKey" type="password" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100" />
+          </div>
+          <div class="border border-slate-800 bg-slate-850/60 rounded-xl p-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-orange-300">7. Groq Free</span>
+              <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-[10px] text-orange-400 underline">Key ↗</a>
+            </div>
+            <input id="inputGroqKey" type="password" placeholder="gsk_..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100" />
+          </div>
+          <div class="border border-slate-800 bg-slate-850/60 rounded-xl p-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-cyan-300">8. OpenRouter</span>
+              <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" class="text-[10px] text-cyan-400 underline">Key ↗</a>
+            </div>
+            <input id="inputOpenRouterKey" type="password" placeholder="sk-or-v1-..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100" />
+          </div>
+        </div>
+
+        <!-- 9. Local Endpoints & GitHub Repos for Creative Studio -->
+        <div class="border border-purple-500/30 bg-purple-950/15 rounded-xl p-3.5 space-y-2.5">
+          <div class="font-bold text-purple-300 text-sm">9. Endpoint Lokal &amp; Referensi GitHub Creative Studio</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">ComfyUI Server URL (GitHub: comfyanonymous/ComfyUI)</label>
+              <input id="inputComfyUrl" type="text" value="http://127.0.0.1:8188" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100" />
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 mb-1">Voice Studio / Kokoro TTS URL (GitHub: remsky/Kokoro-FastAPI)</label>
+              <input id="inputVoiceUrl" type="text" value="http://localhost:8880" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-100" />
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 pt-1 text-[10px]">
+            <a href="https://github.com/pinokiofactory/pinokio" target="_blank" rel="noopener" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-yellow-200">🍍 Pinokio AI ↗</a>
+            <a href="https://github.com/Wan-Video/Wan2.2" target="_blank" rel="noopener" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-purple-200">🎬 Wan-Video/Wan2.2 ↗</a>
+            <a href="https://github.com/remsky/Kokoro-FastAPI" target="_blank" rel="noopener" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-purple-200">🎙️ Voice Studio (Kokoro) ↗</a>
+            <a href="https://github.com/comfyanonymous/ComfyUI" target="_blank" rel="noopener" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-purple-200">🧩 ComfyUI ↗</a>
+            <a href="https://github.com/zhouxiaoka/autoclip" target="_blank" rel="noopener" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-purple-200">✂️ AutoClip ↗</a>
+            <a href="https://github.com/remotion-dev/remotion" target="_blank" rel="noopener" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-purple-200">⚛️ Remotion ↗</a>
+            <a href="https://github.com/mermaid-js/mermaid" target="_blank" rel="noopener" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-purple-200">📊 Napkin/Mermaid ↗</a>
+            <a href="https://github.com/pptist/PPTist" target="_blank" rel="noopener" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-purple-200">📑 Gamma/PPTist ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-5 py-3.5 border-t border-slate-800 flex items-center justify-end gap-2">
+        <button id="btnSaveAccounts" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-xl text-xs transition">
+          Simpan Konfigurasi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    if (window.mermaid) {
+      mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+    }
+
+    // ==================== STATE & STORAGE ====================
+    const STORAGE_KEYS = {
+      SETTINGS: 'etoai_settings_v5',
+      HISTORY: 'etoai_chat_history_v5'
+    };
+
+    const SYSTEM_PROFILES = {
+      general: 'Anda adalah EtoAi (eagent), asisten AI cerdas, ringkas, akurat, dan membantu dalam Bahasa Indonesia. Jika pengguna melampirkan file contoh/template (Word, Excel, PDF, CSV), ikuti persis struktur bab, urutan kolom tabel, gaya bahasa, dan format penomorannya. Gunakan format Markdown rapi (heading, poin, atau tabel Markdown `| Kolom 1 | Kolom 2 |`) agar siap diekspor kembali sesuai format file contoh.',
+      'file-maker': `Anda adalah EtoAi Template-Clone & Document Generator. Tugas utama Anda meniru 100% struktur, urutan kolom tabel, judul bagian, format tanggal/angka, dan gaya redaksi dari file contoh/template yang dilampirkan pengguna:
+- Jika pengguna melampirkan file contoh (Excel/CSV/Word/PDF) dan meminta dibuatkan file serupa: replikasi persis struktur heading, jumlah & nama kolom tabel Markdown (\`| Kolom 1 | Kolom 2 | ... |\`), serta posisi tanda tangan/catatan kaki sesuai dokumen contoh.
+- Jika tidak ada file contoh: sajikan tabel Markdown lengkap atau struktur dokumen resmi yang rapi dan siap unduh ke Word (.docx), Excel (.xlsx), atau PDF (.pdf).`,
+      'image-gen': 'Anda adalah AI Visual Prompt Artist. Terjemahkan dan perkaya deskripsi gambar pengguna menjadi prompt visual bahasa Inggris yang detail dan fotorealistik.',
+      laporan: 'Anda adalah asisten penyusun laporan kegiatan resmi instansi pemerintah. Susun jawaban terstruktur: Dasar/Tujuan, Waktu & Tempat, Uraian Pelaksanaan, Hasil/Output, dan Tindak Lanjut dalam bahasa baku yang rapi siap ekspor Word/PDF.',
+      pinokio: `Anda adalah Pinokio AI Computer Architect (github.com/pinokiofactory/pinokio). Bantu pengguna menginstal, mengonfigurasi, dan membuat skrip otomatisasi 1-klik Pinokio (\`pinokio.js\`, \`install.js\`, \`start.js\`) untuk menjalankan aplikasi AI lokal gratis seperti Wan2.2, ComfyUI, Kokoro TTS, Ollama, Open WebUI, atau FaceFusion beserta solusi troubleshooting virtual environment (conda/uv/venv).`,
+      coding: 'Anda adalah Claude Code Agent (eagent dev). Berikan solusi kode bersih, modular, siap dijalankan, beserta langkah CLI singkat.',
+      perplexity: 'Anda adalah Perplexity / Perplexica Research Agent. Jawab pertanyaan secara mendalam, faktual, terstruktur dengan poin perbandingan, sumber konteks, dan ringkasan eksekutif.',
+      'wan-video': `Anda adalah Wan-Video 2.1/2.2 AI Director (github.com/Wan-Video/Wan2.2). Tugas Anda menyusun:
+1. **Prompt Sinematik Wan-Video** (subjek, gerakan kamera, pencahayaan, atmosfer, 24fps, 720p/1080p).
+2. **Negative Prompt** untuk mencegah artefak.
+3. **Parameter CLI / Gradio / Pinokio Wan2.2** (\`python generate.py --task t2v-A14B --size 1280*720 --prompt "..."\`).`,
+      'voice-studio': `Anda adalah Voice Studio AI Producer (Kokoro-TTS / GPT-SoVITS). Susun:
+1. **Naskah Voice-Over Natural** dengan penanda jeda [jeda 0.5d], intonasi, dan penekanan kata.
+2. **Rekomendasi Parameter Suara** (Pitch, Speed, Emosi).
+Catatan: Aplikasi akan otomatis menampilkan tombol pemutar suara langsung di browser.`,
+      comfyui: `Anda adalah ComfyUI Node Architect (github.com/comfyanonymous/ComfyUI). Berikan:
+1. **Alur Node ComfyUI** (CheckpointLoader -> CLIPTextEncode -> KSampler -> VAEDecode -> SaveImage / WanVideoWrapper).
+2. **JSON Workflow API Valid** dalam blok \`\`\`json\`\`\` yang siap diimpor langsung ke ComfyUI.`,
+      autoclip: `Anda adalah AutoClip AI Video Editor (github.com/zhouxiaoka/autoclip). Analisis transkrip/topik video dan hasilkan:
+1. **Daftar Klip Viral Terbaik** lengkap dengan Timestamp \`[00:00 - 00:45]\`, Hook pembuka, dan Skor Retensi.
+2. **Teks Subtitle SRT / Caption Shorts-Reels-TikTok** siap pakai.`,
+      remotion: `Anda adalah Remotion Video Engineer (github.com/remotion-dev/remotion). Tulis komponen video terprogram dalam **React TypeScript (.tsx)** menggunakan \`useCurrentFrame\`, \`useVideoConfig\`, \`interpolate\`, dan \`Sequence\` yang siap dirender menjadi MP4.`,
+      napkin: `Anda adalah Napkin AI Visual Storyteller. Ubah ide atau dokumen pengguna menjadi:
+1. Penjelasan visual singkat.
+2. **Diagram Mermaid** yang valid di dalam blok \`\`\`mermaid\`\`\` (gunakan \`flowchart TD\`, \`mindmap\`, atau \`sequenceDiagram\` tanpa karakter tanda kurung bermasalah di label node) agar langsung dirender menjadi grafik visual.`,
+      gamma: `Anda adalah Gamma AI Presentation Designer. Susun dek presentasi modern dalam format terstruktur per slide:
+- **Slide 1: Judul & Subjudul Utama**
+- **Slide 2..N: Judul Slide, Poin Inti Maksimal 4 Bulir, dan Saran Visual/Layout**
+Gunakan pemisah \`---\` antar slide agar mudah diekspor ke presentasi.`
+    };
+
+    let state = {
+      profile: 'general',
+      selectedModel: 'smart-router',
+      timeoutMs: 25000,
+      keys: {
+        gemini: '',
+        groq: '',
+        openrouter: '',
+        deepseek: '',
+        perplexity: '',
+        fccMode: 'hosted',
+        fccKey: '',
+        pinokioUrl: 'http://localhost:42000',
+        ollamaUrl: 'http://localhost:11434',
+        ollamaModel: 'llama3.2',
+        comfyUrl: 'http://127.0.0.1:8188',
+        voiceUrl: 'http://localhost:8880'
+      },
+      attachedDocs: [],
+      activeDocIndex: 0,
+      templateFiles: [],
+      messages: [],
+      abortController: null,
+      timerInterval: null
+    };
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
+        if (saved.selectedModel) state.selectedModel = saved.selectedModel;
+        if (saved.timeoutMs) state.timeoutMs = Number(saved.timeoutMs);
+        if (saved.keys) state.keys = { ...state.keys, ...saved.keys };
+
+        const history = JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY) || '[]');
+        if (Array.isArray(history)) state.messages = history;
+      } catch (e) {
+        console.warn('Gagal memuat state lokal:', e);
+      }
+
+      document.getElementById('modelSelect').value = state.selectedModel;
+      document.getElementById('timeoutSelect').value = String(state.timeoutMs);
+      document.getElementById('inputGeminiKey').value = state.keys.gemini || '';
+      document.getElementById('inputGroqKey').value = state.keys.groq || '';
+      document.getElementById('inputOpenRouterKey').value = state.keys.openrouter || '';
+      document.getElementById('inputDeepSeekKey').value = state.keys.deepseek || '';
+      document.getElementById('inputPerplexityKey').value = state.keys.perplexity || '';
+      document.getElementById('fccModeSelect').value = state.keys.fccMode || 'hosted';
+      document.getElementById('inputFccKey').value = state.keys.fccKey || '';
+      document.getElementById('inputPinokioUrl').value = state.keys.pinokioUrl || 'http://localhost:42000';
+      document.getElementById('inputOllamaUrl').value = state.keys.ollamaUrl || 'http://localhost:11434';
+      document.getElementById('inputOllamaModel').value = state.keys.ollamaModel || 'llama3.2';
+      document.getElementById('inputComfyUrl').value = state.keys.comfyUrl || 'http://127.0.0.1:8188';
+      document.getElementById('inputVoiceUrl').value = state.keys.voiceUrl || 'http://localhost:8880';
+
+      renderAllMessages();
+    }
+
+    function saveSettings() {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify({
+        selectedModel: state.selectedModel,
+        timeoutMs: state.timeoutMs,
+        keys: state.keys
+      }));
+    }
+
+    function saveHistory() {
+      localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(state.messages.slice(-40)));
+    }
+
+    // ==================== CLIENT-SIDE FILE GENERATORS (WORD, EXCEL, PDF, CSV, IMAGE) ====================
+    function triggerDownloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }
+
+    function extractMarkdownTables(md) {
+      const lines = md.split('\n');
+      const tables = [];
+      let currentTable = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith('|') && line.endsWith('|')) {
+          currentTable.push(line);
+        } else {
+          if (currentTable.length >= 2) tables.push(currentTable);
+          currentTable = [];
+        }
+      }
+      if (currentTable.length >= 2) tables.push(currentTable);
+
+      return tables.map(tblLines => {
+        const parsedRows = [];
+        tblLines.forEach((rawLine, idx) => {
+          const cells = rawLine.slice(1, -1).split('|').map(c => c.trim().replace(/\*\*/g, ''));
+          const isSeparator = cells.every(c => /^:?-{2,}:?$/.test(c));
+          if (!isSeparator) parsedRows.push(cells);
+        });
+        return parsedRows;
+      }).filter(t => t.length > 0);
+    }
+
+    function cleanInlineMd(text) {
+      return text
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/\*(.*?)\*/g, '$1')
+        .replace(/`([^`]+)`/g, '$1')
+        .trim();
+    }
+
+    async function exportMarkdownToWord(md, baseName = 'Dokumen_EtoAi') {
+      if (!window.docx) {
+        alert('Library pembuat Word (.docx) sedang dimuat. Silakan coba beberapa detik lagi.');
+        return;
+      }
+      const { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle } = window.docx;
+      const lines = md.split('\n');
+      const children = [];
+      let i = 0;
+
+      while (i < lines.length) {
+        const line = lines[i].trim();
+
+        // Detect Markdown Table
+        if (line.startsWith('|') && line.endsWith('|')) {
+          const tableLines = [];
+          while (i < lines.length && lines[i].trim().startsWith('|') && lines[i].trim().endsWith('|')) {
+            tableLines.push(lines[i].trim());
+            i++;
+          }
+          const rowsData = [];
+          tableLines.forEach(tl => {
+            const cells = tl.slice(1, -1).split('|').map(c => cleanInlineMd(c));
+            const isSep = cells.every(c => /^:?-{2,}:?$/.test(c));
+            if (!isSep) rowsData.push(cells);
+          });
+
+          if (rowsData.length > 0) {
+            const docRows = rowsData.map((rCells, rIdx) => new TableRow({
+              tableHeader: rIdx === 0,
+              children: rCells.map(cellText => new TableCell({
+                shading: rIdx === 0 ? { fill: 'E2E8F0' } : undefined,
+                margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [new Paragraph({
+                  children: [new TextRun({ text: cellText || ' ', bold: rIdx === 0, size: 20, font: 'Calibri' })]
+                })]
+              }))
+            }));
+            children.push(new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              rows: docRows
+            }));
+            children.push(new Paragraph({ text: '' }));
+          }
+          continue;
+        }
+
+        if (!line) {
+          children.push(new Paragraph({ text: '' }));
+        } else if (line.startsWith('### ')) {
+          children.push(new Paragraph({
+            heading: HeadingLevel.HEADING_3,
+            children: [new TextRun({ text: cleanInlineMd(line.slice(4)), bold: true, size: 24, font: 'Calibri' })]
+          }));
+        } else if (line.startsWith('## ')) {
+          children.push(new Paragraph({
+            heading: HeadingLevel.HEADING_2,
+            children: [new TextRun({ text: cleanInlineMd(line.slice(3)), bold: true, size: 28, font: 'Calibri' })]
+          }));
+        } else if (line.startsWith('# ')) {
+          children.push(new Paragraph({
+            heading: HeadingLevel.HEADING_1,
+            children: [new TextRun({ text: cleanInlineMd(line.slice(2)), bold: true, size: 32, font: 'Calibri' })]
+          }));
+        } else if (/^[-*+]\s+/.test(line)) {
+          children.push(new Paragraph({
+            bullet: { level: 0 },
+            children: [new TextRun({ text: cleanInlineMd(line.replace(/^[-*+]\s+/, '')), size: 22, font: 'Calibri' })]
+          }));
+        } else if (/^\d+\.\s+/.test(line)) {
+          children.push(new Paragraph({
+            children: [new TextRun({ text: cleanInlineMd(line), size: 22, font: 'Calibri' })]
+          }));
+        } else if (!line.startsWith('```')) {
+          children.push(new Paragraph({
+            spacing: { after: 120 },
+            children: [new TextRun({ text: cleanInlineMd(line), size: 22, font: 'Calibri' })]
+          }));
+        }
+        i++;
+      }
+
+      const doc = new Document({
+        sections: [{ properties: {}, children }]
+      });
+      const blob = await Packer.toBlob(doc);
+      triggerDownloadBlob(blob, `${baseName}.docx`);
+    }
+
+    function exportMarkdownToExcel(md, baseName = 'Data_EtoAi', asCsv = false) {
+      if (!window.XLSX) {
+        alert('Library Excel (SheetJS) belum siap.');
+        return;
+      }
+      const tables = extractMarkdownTables(md);
+      const wb = XLSX.utils.book_new();
+
+      if (tables.length > 0) {
+        tables.forEach((rows, idx) => {
+          const typedRows = rows.map((r, rIdx) => {
+            if (rIdx === 0) return r;
+            return r.map(cell => {
+              const numCandidate = cell.replace(/^Rp\s*/i, '').replace(/\./g, '').replace(',', '.').trim();
+              if (/^-?\d+(\.\d+)?$/.test(numCandidate) && cell.length < 18) {
+                return Number(numCandidate);
+              }
+              return cell;
+            });
+          });
+          const ws = XLSX.utils.aoa_to_sheet(typedRows);
+          ws['!cols'] = (rows[0] || []).map(() => ({ wch: 22 }));
+          XLSX.utils.book_append_sheet(wb, ws, `Tabel_${idx + 1}`);
+        });
+      } else {
+        const lines = md.split('\n').filter(l => l.trim()).map((l, idx) => [idx + 1, cleanInlineMd(l)]);
+        const ws = XLSX.utils.aoa_to_sheet([['No', 'Konten'], ...lines]);
+        ws['!cols'] = [{ wch: 6 }, { wch: 85 }];
+        XLSX.utils.book_append_sheet(wb, ws, 'Ringkasan');
+      }
+
+      if (asCsv) {
+        const firstSheet = wb.Sheets[wb.SheetNames[0]];
+        const csvStr = XLSX.utils.sheet_to_csv(firstSheet);
+        const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+        triggerDownloadBlob(blob, `${baseName}.csv`);
+      } else {
+        XLSX.writeFile(wb, `${baseName}.xlsx`);
+      }
+    }
+
+    function exportMarkdownToPdf(md, baseName = 'Laporan_EtoAi') {
+      if (!window.jspdf) {
+        alert('Library PDF (jsPDF) belum siap.');
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      const maxWidth = pageWidth - margin * 2;
+      let cursorY = 18;
+
+      const checkPageBreak = (needed = 8) => {
+        if (cursorY + needed > pageHeight - 15) {
+          doc.addPage();
+          cursorY = 18;
+        }
+      };
+
+      const lines = md.split('\n');
+      let i = 0;
+
+      while (i < lines.length) {
+        const line = lines[i].trim();
+
+        if (line.startsWith('|') && line.endsWith('|')) {
+          const tableLines = [];
+          while (i < lines.length && lines[i].trim().startsWith('|') && lines[i].trim().endsWith('|')) {
+            tableLines.push(lines[i].trim());
+            i++;
+          }
+          const rowsData = [];
+          tableLines.forEach(tl => {
+            const cells = tl.slice(1, -1).split('|').map(c => cleanInlineMd(c));
+            const isSep = cells.every(c => /^:?-{2,}:?$/.test(c));
+            if (!isSep) rowsData.push(cells);
+          });
+
+          if (rowsData.length > 0 && doc.autoTable) {
+            doc.autoTable({
+              startY: cursorY,
+              head: [rowsData[0]],
+              body: rowsData.slice(1),
+              margin: { left: margin, right: margin },
+              styles: { fontSize: 8.5, cellPadding: 2.5 },
+              headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' },
+              alternateRowStyles: { fillColor: [248, 250, 252] }
+            });
+            cursorY = doc.lastAutoTable.finalY + 6;
+          }
+          continue;
+        }
+
+        if (!line) {
+          cursorY += 3;
+        } else if (line.startsWith('# ')) {
+          checkPageBreak(10);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(14);
+          const wrapped = doc.splitTextToSize(cleanInlineMd(line.slice(2)), maxWidth);
+          doc.text(wrapped, margin, cursorY);
+          cursorY += wrapped.length * 6.5 + 2;
+        } else if (line.startsWith('## ')) {
+          checkPageBreak(9);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(12);
+          const wrapped = doc.splitTextToSize(cleanInlineMd(line.slice(3)), maxWidth);
+          doc.text(wrapped, margin, cursorY);
+          cursorY += wrapped.length * 5.8 + 1.5;
+        } else if (line.startsWith('### ')) {
+          checkPageBreak(8);
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(10.5);
+          const wrapped = doc.splitTextToSize(cleanInlineMd(line.slice(4)), maxWidth);
+          doc.text(wrapped, margin, cursorY);
+          cursorY += wrapped.length * 5.2 + 1;
+        } else if (!line.startsWith('```')) {
+          checkPageBreak(6);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          const textVal = /^[-*+]\s+/.test(line)
+            ? '• ' + cleanInlineMd(line.replace(/^[-*+]\s+/, ''))
+            : cleanInlineMd(line);
+          const wrapped = doc.splitTextToSize(textVal, maxWidth);
+          doc.text(wrapped, margin, cursorY);
+          cursorY += wrapped.length * 4.8 + 1;
+        }
+        i++;
+      }
+
+      doc.save(`${baseName}.pdf`);
+    }
+
+    function exportCodeOrHtmlFromMarkdown(md, baseName = 'Output_EtoAi') {
+      const codeMatch = md.match(/```(\w+)?\n([\s\S]*?)```/);
+      if (codeMatch) {
+        const lang = (codeMatch[1] || 'txt').toLowerCase();
+        const extMap = { html: 'html', json: 'json', python: 'py', py: 'py', javascript: 'js', js: 'js', tsx: 'tsx', typescript: 'ts', ts: 'ts', css: 'css', sql: 'sql', mermaid: 'mmd' };
+        const ext = extMap[lang] || lang || 'txt';
+        const blob = new Blob([codeMatch[2].trim()], { type: 'text/plain;charset=utf-8' });
+        triggerDownloadBlob(blob, `${baseName}.${ext}`);
+        return;
+      }
+      const htmlBody = window.marked ? marked.parse(md) : `<pre>${escapeHtml(md)}</pre>`;
+      const fullHtml = `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>${baseName}</title><style>body{font-family:system-ui,sans-serif;max-width:820px;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#1e293b}table{width:100%;border-collapse:collapse;margin:1rem 0}th,td{border:1px solid #cbd5e1;padding:8px;text-align:left}th{background:#f1f5f9}</style></head><body>${htmlBody}</body></html>`;
+      triggerDownloadBlob(new Blob([fullHtml], { type: 'text/html;charset=utf-8' }), `${baseName}.html`);
+    }
+
+    async function downloadImageFromUrl(url, filename = 'EtoAi_Image.png') {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        triggerDownloadBlob(blob, filename);
+      } catch {
+        window.open(url, '_blank');
+      }
+    }
+
+    // ==================== UI HELPERS ====================
+    const chatContainer = document.getElementById('chatContainer');
+    const statusBar = document.getElementById('statusBar');
+    const statusText = document.getElementById('statusText');
+    const statusTimer = document.getElementById('statusTimer');
+
+    function startStatus(label) {
+      statusBar.classList.remove('hidden');
+      statusText.textContent = label;
+      const startTime = Date.now();
+      statusTimer.textContent = '(0.0d)';
+      clearInterval(state.timerInterval);
+      state.timerInterval = setInterval(() => {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        statusTimer.textContent = `(${elapsed}d)`;
+      }, 100);
+    }
+
+    function updateStatusLabel(label) {
+      statusText.textContent = label;
+    }
+
+    function stopStatus() {
+      clearInterval(state.timerInterval);
+      statusBar.classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    }
+
+    function speakTextBrowser(text) {
+      if (!('speechSynthesis' in window)) {
+        alert('Browser Anda tidak mendukung Web Speech TTS.');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const clean = text.replace(/[#*`_\[\]]/g, ' ').slice(0, 1500);
+      const utter = new SpeechSynthesisUtterance(clean);
+      utter.lang = 'id-ID';
+      utter.rate = 1.0;
+      window.speechSynthesis.speak(utter);
+    }
+
+    async function renderMermaidDiagrams(containerEl) {
+      if (!window.mermaid) return;
+      const codeBlocks = containerEl.querySelectorAll('pre code.language-mermaid');
+      for (let i = 0; i < codeBlocks.length; i++) {
+        const codeEl = codeBlocks[i];
+        const graphDef = codeEl.textContent.trim();
+        const preEl = codeEl.parentElement;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'my-3 p-3 bg-slate-950 border border-indigo-500/30 rounded-xl overflow-x-auto space-y-2';
+        try {
+          const id = `mermaid-${Date.now()}-${i}`;
+          const { svg } = await mermaid.render(id, graphDef);
+          wrapper.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] text-indigo-300 font-semibold">📊 Napkin Visual Diagram</span>
+              <button type="button" class="dl-svg-btn text-[10px] bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 px-2 py-0.5 rounded">Unduh SVG</button>
+            </div>
+            <div>${svg}</div>`;
+          wrapper.querySelector('.dl-svg-btn').addEventListener('click', () => {
+            triggerDownloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `Diagram_Napkin_${Date.now()}.svg`);
+          });
+          preEl.replaceWith(wrapper);
+        } catch (err) {
+          console.warn('Mermaid render fallback:', err);
+        }
+      }
+    }
+
+    function renderMessageBubble(msg) {
+      const wrapper = document.createElement('div');
+      const isUser = msg.role === 'user';
+      wrapper.className = `max-w-3xl mx-auto flex ${isUser ? 'justify-end' : 'justify-start'}`;
+
+      const bubble = document.createElement('div');
+      if (isUser) {
+        bubble.className = 'bg-indigo-600 text-white rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[88%] sm:max-w-[78%] text-sm shadow';
+        let docTag = msg.docName ? `<div class="text-[11px] bg-indigo-700/80 border border-indigo-400/30 rounded-lg px-2 py-1 mb-1.5 font-mono">📎 ${escapeHtml(msg.docName)}</div>` : '';
+        bubble.innerHTML = `${docTag}<div class="whitespace-pre-wrap leading-relaxed">${escapeHtml(msg.content)}</div>`;
+      } else if (msg.isError) {
+        bubble.className = 'bg-rose-950/60 border border-rose-500/40 text-rose-200 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[92%] text-xs sm:text-sm';
+        bubble.innerHTML = `<div class="font-bold text-rose-300 mb-1">⚠️ Gagal Memproses Permintaan</div><div class="leading-relaxed">${escapeHtml(msg.content)}</div>`;
+      } else if (msg.imageUrl) {
+        bubble.className = 'bg-slate-900 border border-slate-800 text-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[95%] sm:max-w-[80%] text-sm shadow-sm space-y-2.5';
+        bubble.innerHTML = `
+          <div class="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-800/80 text-[11px] text-slate-400">
+            <span class="font-semibold text-pink-300">🎨 ${escapeHtml(msg.modelLabel || 'Image AI')}</span>
+            <button class="dl-img-btn bg-pink-600/25 hover:bg-pink-600/40 border border-pink-500/40 text-pink-200 px-2.5 py-0.5 rounded-md font-medium transition">⬇️ Unduh PNG</button>
+          </div>
+          <div class="rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
+            <img src="${escapeHtml(msg.imageUrl)}" alt="${escapeHtml(msg.content)}" class="w-full h-auto max-h-[420px] object-contain mx-auto" loading="lazy" />
+          </div>
+          <p class="text-xs text-slate-300"><strong>Prompt:</strong> ${escapeHtml(msg.content)}</p>
+        `;
+        bubble.querySelector('.dl-img-btn').addEventListener('click', () => {
+          downloadImageFromUrl(msg.imageUrl, `EtoAi_Image_${Date.now()}.png`);
+        });
+      } else {
+        bubble.className = 'bg-slate-900 border border-slate-800 text-slate-100 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[95%] sm:max-w-[88%] text-sm shadow-sm';
+        const parsedHtml = window.marked ? marked.parse(msg.content) : escapeHtml(msg.content);
+        const stamp = new Date().toISOString().slice(0, 10);
+        bubble.innerHTML = `
+          <div class="flex items-center justify-between gap-2 pb-1.5 mb-1.5 border-b border-slate-800/80 text-[11px] text-slate-400">
+            <span class="font-semibold text-indigo-300">⚡ ${escapeHtml(msg.modelLabel || 'EtoAi')}</span>
+            <div class="flex items-center gap-2">
+              <button class="tts-reply-btn hover:text-emerald-300 transition" title="Bacakan dengan Voice Studio TTS">🔊 Suara</button>
+              <button class="copy-reply-btn hover:text-white transition" title="Salin Jawaban">Salin</button>
+            </div>
+          </div>
+          <div class="prose prose-invert max-w-none text-slate-200">${parsedHtml}</div>
+          <div class="mt-3 pt-2 border-t border-slate-800/80 flex flex-wrap items-center gap-1.5 text-[11px]">
+            <span class="text-slate-400 mr-1">Buat File:</span>
+            <button class="exp-match-btn bg-amber-500/25 hover:bg-amber-500/40 border border-amber-400/50 text-amber-200 font-semibold px-2.5 py-1 rounded-md transition" title="Unduh sesuai ekstensi & struktur file contoh yang diunggah">✨ Sesuai Format Contoh</button>
+            <button class="exp-docx-btn bg-blue-600/20 hover:bg-blue-600/35 border border-blue-500/40 text-blue-200 px-2 py-1 rounded-md transition">📘 Word (.docx)</button>
+            <button class="exp-xlsx-btn bg-emerald-600/20 hover:bg-emerald-600/35 border border-emerald-500/40 text-emerald-200 px-2 py-1 rounded-md transition">📗 Excel (.xlsx)</button>
+            <button class="exp-pdf-btn bg-rose-600/20 hover:bg-rose-600/35 border border-rose-500/40 text-rose-200 px-2 py-1 rounded-md transition">📕 PDF (.pdf)</button>
+            <button class="exp-csv-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-2 py-1 rounded-md transition">📊 CSV</button>
+            <button class="exp-code-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-2 py-1 rounded-md transition">🌐 HTML/Code</button>
+          </div>
+        `;
+        bubble.querySelector('.tts-reply-btn').addEventListener('click', () => speakTextBrowser(msg.content));
+        bubble.querySelector('.copy-reply-btn').addEventListener('click', (e) => {
+          navigator.clipboard.writeText(msg.content);
+          e.target.textContent = 'Tersalin ✓';
+          setTimeout(() => e.target.textContent = 'Salin', 1500);
+        });
+        bubble.querySelector('.exp-match-btn').addEventListener('click', () => exportMatchingTemplateFormat(msg.content, `EtoAi_SesuaiFormat_${stamp}`));
+        bubble.querySelector('.exp-docx-btn').addEventListener('click', () => exportMarkdownToWord(msg.content, `EtoAi_Dokumen_${stamp}`));
+        bubble.querySelector('.exp-xlsx-btn').addEventListener('click', () => exportMarkdownToExcel(msg.content, `EtoAi_Tabel_${stamp}`, false));
+        bubble.querySelector('.exp-pdf-btn').addEventListener('click', () => exportMarkdownToPdf(msg.content, `EtoAi_Laporan_${stamp}`));
+        bubble.querySelector('.exp-csv-btn').addEventListener('click', () => exportMarkdownToExcel(msg.content, `EtoAi_Data_${stamp}`, true));
+        bubble.querySelector('.exp-code-btn').addEventListener('click', () => exportCodeOrHtmlFromMarkdown(msg.content, `EtoAi_File_${stamp}`));
+        renderMermaidDiagrams(bubble);
+      }
+
+      wrapper.appendChild(bubble);
+      chatContainer.appendChild(wrapper);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function renderAllMessages() {
+      while (chatContainer.children.length > 1) {
+        chatContainer.removeChild(chatContainer.lastChild);
+      }
+      state.messages.forEach(renderMessageBubble);
+    }
+
+    // ==================== CLIENT-SIDE MARKITDOWN + OCR (MULTI-FILE) ====================
+    async function parseSingleFileToMarkdown(file, onProgress) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      const autoOcr = document.getElementById('chkAutoOcr').checked;
+
+      if (ext === 'md' || ext === 'txt') {
+        if (onProgress) onProgress(100, `Membaca ${file.name}...`);
+        return await file.text();
+      }
+      if (ext === 'json') {
+        if (onProgress) onProgress(100, `Membaca JSON ${file.name}...`);
+        const raw = await file.text();
+        const parsed = JSON.parse(raw);
+        return `# Dokumen JSON: ${file.name}\n\n\`\`\`json\n${JSON.stringify(parsed, null, 2)}\n\`\`\``;
+      }
+      if (ext === 'csv' || ext === 'xlsx' || ext === 'xls') {
+        if (onProgress) onProgress(60, `Mengonversi spreadsheet ${file.name}...`);
+        const buf = await file.arrayBuffer();
+        const wb = XLSX.read(buf, { type: 'array' });
+        const sections = wb.SheetNames.map(sheetName => {
+          const ws = wb.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+          if (!rows.length) return `## Sheet: ${sheetName}\n*(Kosong)*`;
+          const header = rows[0].map(c => String(c).replace(/\|/g, '\\|').trim() || 'Kolom');
+          const sep = header.map(() => '---');
+          const body = rows.slice(1).map(r =>
+            header.map((_, idx) => String(r[idx] ?? '').replace(/\|/g, '\\|').replace(/\n/g, ' ').trim())
+          );
+          const tableMd = [
+            `| ${header.join(' | ')} |`,
+            `| ${sep.join(' | ')} |`,
+            ...body.map(r => `| ${r.join(' | ')} |`)
+          ].join('\n');
+          return `## Sheet: ${sheetName}\n\n${tableMd}`;
+        });
+        if (onProgress) onProgress(100, `Selesai ${file.name}`);
+        return `# Dokumen Spreadsheet: ${file.name}\n\n${sections.join('\n\n')}`;
+      }
+      if (ext === 'docx') {
+        if (onProgress) onProgress(65, `Mengekstrak DOCX ${file.name}...`);
+        const buf = await file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer: buf });
+        const turndown = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
+        if (onProgress) onProgress(100, `Selesai ${file.name}`);
+        return `# Dokumen Word: ${file.name}\n\n${turndown.turndown(result.value)}`;
+      }
+      if (ext === 'pdf') {
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        const totalPages = pdf.numPages;
+        let pagesMd = [];
+
+        for (let i = 1; i <= totalPages; i++) {
+          const pct = Math.round((i / totalPages) * 90);
+          if (onProgress) onProgress(pct, `${file.name}: halaman ${i}/${totalPages}...`);
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const extractedText = textContent.items.map(it => it.str).join(' ').trim();
+
+          if (extractedText.length >= 35) {
+            pagesMd.push(`## Halaman ${i}\n\n${extractedText}`);
+          } else if (autoOcr && window.Tesseract) {
+            if (onProgress) onProgress(pct, `OCR ${file.name} hal. ${i}/${totalPages}...`);
+            const viewport = page.getViewport({ scale: 1.8 });
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            const ocrRes = await Tesseract.recognize(canvas, 'ind+eng');
+            const ocrText = (ocrRes.data.text || '').trim();
+            pagesMd.push(`## Halaman ${i} (Hasil OCR)\n\n${ocrText || '*(Tidak ada teks terdeteksi)*'}`);
+          } else {
+            pagesMd.push(`## Halaman ${i}\n\n*(Halaman gambar/scan — aktifkan Auto-OCR untuk membaca teks)*`);
+          }
+        }
+        if (onProgress) onProgress(100, `Selesai ${file.name}`);
+        return `# Dokumen PDF: ${file.name}\n\n${pagesMd.join('\n\n')}`;
+      }
+      throw new Error(`Format file .${ext} belum didukung.`);
+    }
+
+    function syncDocPreview(index = state.activeDocIndex) {
+      const box = document.getElementById('markdownResultBox');
+      const tabsEl = document.getElementById('docFileTabs');
+      if (!state.attachedDocs.length) {
+        box.classList.add('hidden');
+        tabsEl.classList.add('hidden');
+        return;
+      }
+      const safeIdx = Math.max(0, Math.min(index, state.attachedDocs.length - 1));
+      state.activeDocIndex = safeIdx;
+      const doc = state.attachedDocs[safeIdx];
+
+      tabsEl.innerHTML = '';
+      state.attachedDocs.forEach((d, idx) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = idx === safeIdx
+          ? 'text-[11px] bg-indigo-600 text-white px-2 py-1 rounded-lg font-mono truncate max-w-[140px]'
+          : 'text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded-lg font-mono truncate max-w-[140px]';
+        chip.textContent = d.name;
+        chip.addEventListener('click', () => {
+          state.attachedDocs[state.activeDocIndex].markdown = document.getElementById('markdownOutput').value;
+          syncDocPreview(idx);
+        });
+        tabsEl.appendChild(chip);
+      });
+      tabsEl.classList.remove('hidden');
+
+      document.getElementById('convertedFileTitle').textContent = doc.name;
+      document.getElementById('markdownOutput').value = doc.markdown;
+      box.classList.remove('hidden');
+    }
+
+    function renderAttachedDocsUI() {
+      const banner = document.getElementById('attachedDocBanner');
+      const nameEl = document.getElementById('attachedDocName');
+      const sizeEl = document.getElementById('attachedDocSize');
+      const badge = document.getElementById('docBadgeMobile');
+
+      if (!state.attachedDocs.length) {
+        banner.classList.add('hidden');
+        badge.classList.add('hidden');
+        syncDocPreview(0);
+        return;
+      }
+
+      const totalChars = state.attachedDocs.reduce((acc, d) => acc + d.markdown.length, 0);
+      const totalKb = Math.round((totalChars / 1024) * 10) / 10;
+
+      nameEl.textContent = state.attachedDocs.length === 1
+        ? state.attachedDocs[0].name
+        : state.attachedDocs.map(d => d.name).join(', ');
+      sizeEl.textContent = `(${state.attachedDocs.length} file • ${totalKb} KB MD)`;
+      banner.classList.remove('hidden');
+
+      badge.textContent = String(state.attachedDocs.length);
+      badge.classList.remove('hidden');
+      syncDocPreview(state.activeDocIndex);
+    }
+
+    async function convertFilesToMarkdown(fileList) {
+      const files = Array.from(fileList || []);
+      if (!files.length) return;
+
+      const box = document.getElementById('convertStatusBox');
+      const msgEl = document.getElementById('convertStatusMsg');
+      const barEl = document.getElementById('convertProgressBar');
+
+      box.classList.remove('hidden');
+      let lastAddedIdx = state.attachedDocs.length;
+      const errors = [];
+
+      for (let fIdx = 0; fIdx < files.length; fIdx++) {
+        const file = files[fIdx];
+        try {
+          const md = await parseSingleFileToMarkdown(file, (pct, statusMsg) => {
+            const overallPct = Math.round(((fIdx + pct / 100) / files.length) * 100);
+            barEl.style.width = `${overallPct}%`;
+            msgEl.textContent = `[${fIdx + 1}/${files.length}] ${statusMsg}`;
+          });
+          const ext = file.name.split('.').pop().toLowerCase();
+          const rawBuf = await file.arrayBuffer();
+          const tplEntry = {
+            origName: file.name,
+            ext,
+            buffer: rawBuf,
+            markdown: md
+          };
+          const tplIdx = state.templateFiles.findIndex(t => t.origName === file.name);
+          if (tplIdx >= 0) state.templateFiles[tplIdx] = tplEntry;
+          else state.templateFiles.push(tplEntry);
+
+          const outFileName = file.name.replace(/\.[^.]+$/, '') + '.md';
+          const existingIdx = state.attachedDocs.findIndex(d => d.name === outFileName);
+          if (existingIdx >= 0) {
+            state.attachedDocs[existingIdx] = { name: outFileName, origName: file.name, origExt: ext, markdown: md };
+            lastAddedIdx = existingIdx;
+          } else {
+            state.attachedDocs.push({ name: outFileName, origName: file.name, origExt: ext, markdown: md });
+            lastAddedIdx = state.attachedDocs.length - 1;
+          }
+        } catch (err) {
+          errors.push(`${file.name}: ${err.message}`);
+        }
+      }
+
+      state.activeDocIndex = lastAddedIdx;
+      renderAttachedDocsUI();
+      setTimeout(() => box.classList.add('hidden'), 600);
+
+      if (errors.length) {
+        alert(`Beberapa file gagal dikonversi:\n- ${errors.join('\n- ')}`);
+      }
+    }
+
+    function detachDocument() {
+      state.attachedDocs = [];
+      state.templateFiles = [];
+      state.activeDocIndex = 0;
+      renderAttachedDocsUI();
+    }
+
+    // Clone structure/styling from uploaded template file (.xlsx/.xls/.csv/.docx/.pdf)
+    async function exportMatchingTemplateFormat(md, fallbackBase = 'Hasil_Sesuai_Format') {
+      const activeDoc = state.attachedDocs[state.activeDocIndex] || state.attachedDocs[0];
+      const tpl = activeDoc
+        ? state.templateFiles.find(t => t.origName === activeDoc.origName)
+        : state.templateFiles[state.templateFiles.length - 1];
+
+      if (!tpl) {
+        exportMarkdownToWord(md, fallbackBase);
+        return;
+      }
+
+      const outBase = tpl.origName.replace(/\.[^.]+$/, '') + '_Baru';
+
+      // 1. Jika template asli adalah Excel (.xlsx / .xls), pertahankan workbook, sheet name, lebar kolom, dan header asli!
+      if ((tpl.ext === 'xlsx' || tpl.ext === 'xls') && window.XLSX) {
+        try {
+          const origWb = XLSX.read(tpl.buffer.slice(0), { type: 'array', cellStyles: true });
+          const mdTables = extractMarkdownTables(md);
+          if (mdTables.length > 0) {
+            mdTables.forEach((rows, idx) => {
+              const sheetName = origWb.SheetNames[idx] || origWb.SheetNames[0] || `Sheet_${idx + 1}`;
+              const origWs = origWb.Sheets[sheetName];
+              const origCols = origWs ? origWs['!cols'] : null;
+              const origMerges = origWs ? origWs['!merges'] : null;
+
+              const typedRows = rows.map((r, rIdx) => {
+                if (rIdx === 0) return r;
+                return r.map(cell => {
+                  const numCandidate = cell.replace(/^Rp\s*/i, '').replace(/\./g, '').replace(',', '.').trim();
+                  if (/^-?\d+(\.\d+)?$/.test(numCandidate) && cell.length < 18) return Number(numCandidate);
+                  return cell;
+                });
+              });
+
+              const newWs = XLSX.utils.aoa_to_sheet(typedRows);
+              if (origCols) newWs['!cols'] = origCols;
+              else newWs['!cols'] = (rows[0] || []).map(() => ({ wch: 22 }));
+              if (origMerges && rows.length >= 2) newWs['!merges'] = origMerges;
+              origWb.Sheets[sheetName] = newWs;
+              if (!origWb.SheetNames.includes(sheetName)) origWb.SheetNames.push(sheetName);
+            });
+            XLSX.writeFile(origWb, `${outBase}.xlsx`);
+            return;
+          }
+        } catch (e) {
+          console.warn('Fallback ke standar Excel:', e);
+        }
+        exportMarkdownToExcel(md, outBase, false);
+        return;
+      }
+
+      // 2. Jika template asli CSV
+      if (tpl.ext === 'csv') {
+        exportMarkdownToExcel(md, outBase, true);
+        return;
+      }
+
+      // 3. Jika template asli PDF
+      if (tpl.ext === 'pdf') {
+        exportMarkdownToPdf(md, outBase);
+        return;
+      }
+
+      // 4. Jika template asli Word (.docx)
+      if (tpl.ext === 'docx') {
+        await exportMarkdownToWord(md, outBase);
+        return;
+      }
+
+      // 5. Format teks/json/md lainnya
+      exportCodeOrHtmlFromMarkdown(md, outBase);
+    }
+
+    // ==================== MULTI-MODEL AI ADAPTERS & SMART ROUTER ====================
+    async function fetchWithTimeout(url, options, timeoutMs, externalSignal) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(new Error('TIMEOUT')), timeoutMs);
+
+      const onExternalAbort = () => controller.abort(new Error('USER_CANCELLED'));
+      if (externalSignal) {
+        if (externalSignal.aborted) {
+          clearTimeout(timeoutId);
+          throw new Error('USER_CANCELLED');
+        }
+        externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+      }
+
+      try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return res;
+      } catch (err) {
+        clearTimeout(timeoutId);
+        if (controller.signal.reason && controller.signal.reason.message === 'USER_CANCELLED') {
+          throw new Error('USER_CANCELLED');
+        }
+        if (err.name === 'AbortError' || (controller.signal.reason && controller.signal.reason.message === 'TIMEOUT')) {
+          throw new Error(`Timeout melewati ${timeoutMs / 1000} detik`);
+        }
+        throw err;
+      } finally {
+        if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort);
+      }
+    }
+
+    async function callProvider(target, messagesPayload, signal) {
+      const [provider, modelId] = target.split(':');
+      const timeoutMs = state.timeoutMs;
+
+      // Image Generator (Flux via Pollinations Free Image API)
+      if (provider === 'image') {
+        const userRaw = messagesPayload[messagesPayload.length - 1].content.replace(/^\/(gambar|image)\s+/i, '').trim();
+        let englishPrompt = userRaw;
+        try {
+          const transRes = await callProvider('pollinations:openai', [
+            { role: 'system', content: 'Translate and enhance this image description into a vivid, detailed English prompt for Flux image generation. Return ONLY the prompt text, no quotes or explanation.' },
+            { role: 'user', content: userRaw }
+          ], signal);
+          if (transRes && transRes.text) englishPrompt = transRes.text.trim();
+        } catch {}
+
+        const seed = Math.floor(Math.random() * 999999);
+        const fluxModel = modelId === 'turbo' ? 'turbo' : 'flux';
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?model=${fluxModel}&width=1024&height=1024&seed=${seed}&nologo=true`;
+        return {
+          text: englishPrompt,
+          imageUrl,
+          label: `Image AI (${fluxModel.toUpperCase()})`
+        };
+      }
+
+      // Pinokio AI Browser Integration
+      if (provider === 'pinokio') {
+        if (modelId === 'api') {
+          const pinokioBase = (state.keys.pinokioUrl || 'http://localhost:42000').replace(/\/$/, '');
+          const res = await fetchWithTimeout(`${pinokioBase}/v1/chat/completions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: messagesPayload })
+          }, timeoutMs, signal);
+          if (!res.ok) throw new Error(`Pinokio Local API HTTP ${res.status}`);
+          const data = await res.json();
+          const reply = data?.choices?.[0]?.message?.content || data?.response || JSON.stringify(data);
+          return { text: reply, label: 'Pinokio Local Daemon (42000)' };
+        }
+        const pinokioPrompt = SYSTEM_PROFILES.pinokio;
+        const enrichedMessages = [
+          { role: 'system', content: pinokioPrompt },
+          ...messagesPayload.filter(m => m.role !== 'system')
+        ];
+        const fallbackTarget = state.keys.gemini ? 'gemini:gemini-2.5-flash' : (state.keys.groq ? 'groq:llama-3.3-70b-versatile' : 'pollinations:openai');
+        const res = await callProvider(fallbackTarget, enrichedMessages, signal);
+        return { text: res.text, label: `Pinokio AI Architect • ${res.label}` };
+      }
+
+      // Studio Agents route through specialized system prompt + best available free LLM
+      if (provider === 'studio') {
+        const studioPrompt = SYSTEM_PROFILES[modelId] || SYSTEM_PROFILES.general;
+        const enrichedMessages = [
+          { role: 'system', content: studioPrompt },
+          ...messagesPayload.filter(m => m.role !== 'system')
+        ];
+        const fallbackTarget = state.keys.gemini ? 'gemini:gemini-2.5-flash' : (state.keys.groq ? 'groq:llama-3.3-70b-versatile' : 'pollinations:openai');
+        const res = await callProvider(fallbackTarget, enrichedMessages, signal);
+        const studioNames = {
+          'wan-video': 'Wan-Video 2.2 Studio',
+          'voice-studio': 'Voice Studio TTS',
+          'comfyui': 'ComfyUI Workflow Builder',
+          'autoclip': 'AutoClip AI Editor',
+          'remotion': 'Remotion Video Code',
+          'napkin': 'Napkin AI Visual',
+          'gamma': 'Gamma Slide Deck'
+        };
+        return { text: res.text, label: `${studioNames[modelId] || modelId} • ${res.label}` };
+      }
+
+      if (provider === 'pollinations') {
+        const res = await fetchWithTimeout('https://text.pollinations.ai/openai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: modelId || 'openai',
+            messages: messagesPayload,
+            seed: Math.floor(Math.random() * 10000)
+          })
+        }, timeoutMs, signal);
+        if (!res.ok) throw new Error(`Pollinations HTTP ${res.status}`);
+        const data = await res.json();
+        const reply = data?.choices?.[0]?.message?.content;
+        if (!reply) throw new Error('Respons kosong dari Free LLM');
+        return { text: reply, label: `Free LLM (${modelId})` };
+      }
+
+      if (provider === 'ollama') {
+        const baseUrl = (state.keys.ollamaUrl || 'http://localhost:11434').replace(/\/$/, '');
+        const chosenModel = modelId || state.keys.ollamaModel || 'llama3.2';
+        const res = await fetchWithTimeout(`${baseUrl}/api/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: chosenModel,
+            messages: messagesPayload,
+            stream: false
+          })
+        }, timeoutMs, signal);
+        if (!res.ok) throw new Error(`Ollama Lokal HTTP ${res.status}`);
+        const data = await res.json();
+        return { text: data.message.content, label: `Ollama Local (${chosenModel})` };
+      }
+
+      if (provider === 'deepseek') {
+        if (!state.keys.deepseek) {
+          return await callProvider('pollinations:deepseek', messagesPayload, signal);
+        }
+        const res = await fetchWithTimeout('https://api.deepseek.com/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.keys.deepseek}`
+          },
+          body: JSON.stringify({ model: modelId || 'deepseek-chat', messages: messagesPayload })
+        }, timeoutMs, signal);
+        if (!res.ok) throw new Error(`DeepSeek HTTP ${res.status}`);
+        const data = await res.json();
+        return { text: data.choices[0].message.content, label: `DeepSeek (${modelId})` };
+      }
+
+      if (provider === 'perplexity') {
+        const keyOrUrl = (state.keys.perplexity || '').trim();
+        if (!keyOrUrl) {
+          const res = await callProvider('pollinations:searchgpt', messagesPayload, signal);
+          return { text: res.text, label: 'Perplexity Search Mode (Free)' };
+        }
+        if (keyOrUrl.startsWith('http')) {
+          const res = await fetchWithTimeout(`${keyOrUrl.replace(/\/$/, '')}/api/search`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: messagesPayload[messagesPayload.length - 1].content,
+              focusMode: 'webSearch'
+            })
+          }, timeoutMs, signal);
+          if (!res.ok) throw new Error(`Perplexica Local HTTP ${res.status}`);
+          const data = await res.json();
+          return { text: data.message || JSON.stringify(data), label: 'Perplexica Local (GitHub)' };
+        }
+        const res = await fetchWithTimeout('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${keyOrUrl}`
+          },
+          body: JSON.stringify({ model: 'sonar', messages: messagesPayload })
+        }, timeoutMs, signal);
+        if (!res.ok) throw new Error(`Perplexity HTTP ${res.status}`);
+        const data = await res.json();
+        return { text: data.choices[0].message.content, label: 'Perplexity Sonar' };
+      }
+
+      if (provider === 'fcc') {
+        const mode = state.keys.fccMode || 'hosted';
+        let url = 'https://api.openapis.online/anthropic/v1/messages';
+        let headers = {
+          'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01'
+        };
+        let actualModel = modelId;
+
+        if (mode === 'local') {
+          url = 'http://localhost:8082/v1/messages';
+          headers['x-api-key'] = state.keys.fccKey || 'free-claude-code-local';
+        } else if (mode === 'nvidia') {
+          if (!state.keys.fccKey) throw new Error('API Key NVIDIA NIM (nvapi-...) belum diisi di menu Akun & GitHub.');
+          url = 'https://integrate.api.nvidia.com/v1/chat/completions';
+          headers['Authorization'] = `Bearer ${state.keys.fccKey}`;
+          const nimMap = {
+            'claude-sonnet-4-6': 'qwen/qwen3-coder-480b-a35b-instruct',
+            'claude-opus-4-7': 'deepseek-ai/deepseek-v3.2',
+            'claude-haiku-4-5-20251001': 'meta/llama-3.3-70b-instruct'
+          };
+          actualModel = nimMap[modelId] || 'deepseek-ai/deepseek-v3.2';
+          const res = await fetchWithTimeout(url, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ model: actualModel, messages: messagesPayload, max_tokens: 2048 })
+          }, timeoutMs, signal);
+          if (!res.ok) throw new Error(`NVIDIA NIM HTTP ${res.status}`);
+          const data = await res.json();
+          return { text: data.choices[0].message.content, label: `Free Claude Code (${modelId})` };
+        } else {
+          if (state.keys.fccKey) headers['x-api-key'] = state.keys.fccKey;
+        }
+
+        const sysMsg = messagesPayload.find(m => m.role === 'system')?.content || '';
+        const chatMsgs = messagesPayload.filter(m => m.role !== 'system');
+        const res = await fetchWithTimeout(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            model: actualModel,
+            max_tokens: 2048,
+            system: sysMsg,
+            messages: chatMsgs
+          })
+        }, timeoutMs, signal);
+
+        if (!res.ok) throw new Error(`Free Claude Code HTTP ${res.status}`);
+        const data = await res.json();
+        const text = data?.content?.[0]?.text || data?.choices?.[0]?.message?.content;
+        if (!text) throw new Error('Respons kosong dari Free Claude Code');
+        return { text, label: `Free Claude Code (${modelId})` };
+      }
+
+      if (provider === 'gemini') {
+        if (!state.keys.gemini) throw new Error('API Key Google Gemini belum diisi di Akun & GitHub.');
+        const sysMsg = messagesPayload.find(m => m.role === 'system')?.content || '';
+        const contents = messagesPayload.filter(m => m.role !== 'system').map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }));
+        const res = await fetchWithTimeout(
+          `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${encodeURIComponent(state.keys.gemini)}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: sysMsg ? { parts: [{ text: sysMsg }] } : undefined,
+              contents
+            })
+          },
+          timeoutMs,
+          signal
+        );
+        if (!res.ok) throw new Error(`Gemini HTTP ${res.status}`);
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error('Respons kosong dari Gemini');
+        return { text, label: `Google ${modelId}` };
+      }
+
+      if (provider === 'groq') {
+        if (!state.keys.groq) throw new Error('API Key Groq belum diisi di Akun & GitHub.');
+        const res = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.keys.groq}`
+          },
+          body: JSON.stringify({ model: modelId, messages: messagesPayload })
+        }, timeoutMs, signal);
+        if (!res.ok) throw new Error(`Groq HTTP ${res.status}`);
+        const data = await res.json();
+        return { text: data.choices[0].message.content, label: `Groq (${modelId})` };
+      }
+
+      if (provider === 'openrouter') {
+        if (!state.keys.openrouter) throw new Error('API Key OpenRouter belum diisi di Akun & GitHub.');
+        const res = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.keys.openrouter}`,
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'EtoAi eagent'
+          },
+          body: JSON.stringify({ model: modelId, messages: messagesPayload })
+        }, timeoutMs, signal);
+        if (!res.ok) throw new Error(`OpenRouter HTTP ${res.status}`);
+        const data = await res.json();
+        return { text: data.choices[0].message.content, label: `OpenRouter (${modelId})` };
+      }
+
+      throw new Error(`Provider tidak dikenal: ${provider}`);
+    }
+
+    function buildSmartChain() {
+      const chain = [];
+      if (state.keys.gemini) chain.push('gemini:gemini-2.5-flash');
+      if (state.keys.groq) chain.push('groq:llama-3.3-70b-versatile');
+      if (state.keys.deepseek) chain.push('deepseek:deepseek-chat');
+      if (state.keys.openrouter) chain.push('openrouter:deepseek/deepseek-r1:free');
+      chain.push('pollinations:openai');
+      chain.push('pollinations:deepseek');
+      return chain;
+    }
+
+    async function sendChatMessage(userText) {
+      if (!userText.trim()) return;
+
+      const docsSnapshot = state.attachedDocs.map(d => ({ ...d }));
+      const docDisplayLabel = docsSnapshot.length
+        ? (docsSnapshot.length === 1 ? docsSnapshot[0].name : `${docsSnapshot.length} file (${docsSnapshot.map(d => d.name).join(', ')})`)
+        : null;
+      const userMsgObj = {
+        role: 'user',
+        content: userText,
+        docName: docDisplayLabel
+      };
+      state.messages.push(userMsgObj);
+      renderMessageBubble(userMsgObj);
+      saveHistory();
+
+      const systemPrompt = SYSTEM_PROFILES[state.profile] || SYSTEM_PROFILES.general;
+      const recentMsgs = state.messages.slice(-10).map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
+      if (docsSnapshot.length) {
+        const perDocBudget = Math.max(4000, Math.floor(32000 / docsSnapshot.length));
+        const combinedMd = docsSnapshot.map((d, i) => {
+          const clipped = d.markdown.slice(0, perDocBudget);
+          return `### Dokumen ${i + 1}: ${d.name}\n\n${clipped}`;
+        }).join('\n\n---\n\n');
+        const formatHints = docsSnapshot.map(d => `${d.origName || d.name} (format asli: .${d.origExt || 'md'})`).join(', ');
+        recentMsgs[recentMsgs.length - 1].content =
+          `[${docsSnapshot.length} FILE CONTOH / REFERENSI TERLAMPIR: ${formatHints}]\n` +
+          `ATURAN FORMAT: Jika pengguna meminta dibuatkan dokumen/tabel/laporan baru berdasarkan file di atas, tiru PERSIS struktur heading, urutan & nama kolom tabel Markdown, format penomoran, dan gaya redaksi dari file contoh tersebut.\n\n` +
+          `${combinedMd}\n\n---\n[INSTRUKSI PENGGUNA]:\n${userText}`;
+      }
+
+      const payload = [{ role: 'system', content: systemPrompt }, ...recentMsgs];
+
+      state.abortController = new AbortController();
+      const sendBtn = document.getElementById('btnSend');
+      sendBtn.disabled = true;
+
+      const isSlashImage = /^\/(gambar|image)\s+/i.test(userText.trim());
+      const effectiveModel = isSlashImage ? 'image:flux' : state.selectedModel;
+
+      const targets = effectiveModel === 'smart-router'
+        ? buildSmartChain()
+        : (effectiveModel.startsWith('image:') ? [effectiveModel] : [effectiveModel, 'pollinations:openai']);
+
+      let lastError = null;
+      let successResult = null;
+
+      for (let i = 0; i < targets.length; i++) {
+        const target = targets[i];
+        const prefix = i === 0 ? 'Sedang memproses' : `Fallback (${i}/${targets.length - 1})`;
+        if (i === 0) startStatus(`${prefix} via ${target}...`);
+        else updateStatusLabel(`${prefix} via ${target}...`);
+
+        try {
+          successResult = await callProvider(target, payload, state.abortController.signal);
+          break;
+        } catch (err) {
+          if (err.message === 'USER_CANCELLED') {
+            lastError = new Error('Permintaan dibatalkan oleh pengguna.');
+            break;
+          }
+          lastError = err;
+          console.warn(`Gagal pada ${target}:`, err.message);
+        }
+      }
+
+      stopStatus();
+      sendBtn.disabled = false;
+      state.abortController = null;
+
+      if (successResult) {
+        const aiMsg = {
+          role: 'assistant',
+          content: successResult.text,
+          imageUrl: successResult.imageUrl || null,
+          modelLabel: successResult.label
+        };
+        state.messages.push(aiMsg);
+        renderMessageBubble(aiMsg);
+        saveHistory();
+      } else {
+        const errMsg = {
+          role: 'assistant',
+          isError: true,
+          content: `${lastError?.message || 'Semua gateway AI sedang sibuk.'} Silakan periksa koneksi atau konfigurasi di menu "Akun & GitHub".`
+        };
+        renderMessageBubble(errMsg);
+      }
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    document.getElementById('chatForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('promptInput');
+      const val = input.value;
+      if (!val.trim()) return;
+      input.value = '';
+      input.style.height = 'auto';
+      sendChatMessage(val);
+    });
+
+    const promptInput = document.getElementById('promptInput');
+    promptInput.addEventListener('input', () => {
+      promptInput.style.height = 'auto';
+      promptInput.style.height = Math.min(promptInput.scrollHeight, 144) + 'px';
+    });
+    promptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+      }
+    });
+
+    document.getElementById('btnCancelRequest').addEventListener('click', () => {
+      if (state.abortController) state.abortController.abort();
+    });
+
+    document.getElementById('modelSelect').addEventListener('change', (e) => {
+      state.selectedModel = e.target.value;
+      saveSettings();
+    });
+
+    // Task Profiles & Studio Agent Chips
+    document.querySelectorAll('.profile-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.profile-chip').forEach(b => {
+          b.classList.remove('active', 'bg-indigo-600', 'text-white');
+          b.classList.add('bg-slate-800/80');
+        });
+        btn.classList.add('active', 'bg-indigo-600', 'text-white');
+        btn.classList.remove('bg-slate-800/80');
+        state.profile = btn.dataset.profile;
+        if (btn.dataset.model) {
+          state.selectedModel = btn.dataset.model;
+          document.getElementById('modelSelect').value = btn.dataset.model;
+          saveSettings();
+        } else if (state.selectedModel.startsWith('image:')) {
+          state.selectedModel = 'smart-router';
+          document.getElementById('modelSelect').value = 'smart-router';
+          saveSettings();
+        }
+      });
+    });
+
+    // Drawer Mobile Toggle
+    const docDrawer = document.getElementById('docDrawer');
+    document.getElementById('btnToggleDocs').addEventListener('click', () => docDrawer.classList.remove('translate-x-full'));
+    document.getElementById('btnCloseDocs').addEventListener('click', () => docDrawer.classList.add('translate-x-full'));
+
+    // File Upload Handlers
+    const dropZone = document.getElementById('dropZone');
+    const sidebarFileInput = document.getElementById('sidebarFileInput');
+    const quickFileInput = document.getElementById('quickFileInput');
+
+    dropZone.addEventListener('click', () => sidebarFileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-indigo-500'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-indigo-500'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-indigo-500');
+      if (e.dataTransfer.files.length) convertFilesToMarkdown(e.dataTransfer.files);
+    });
+
+    sidebarFileInput.addEventListener('change', (e) => { if (e.target.files.length) convertFilesToMarkdown(e.target.files); e.target.value = ''; });
+    quickFileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        convertFilesToMarkdown(e.target.files);
+        e.target.value = '';
+        if (window.innerWidth < 1024) docDrawer.classList.remove('translate-x-full');
+      }
+    });
+
+    document.getElementById('btnCopyMd').addEventListener('click', (e) => {
+      navigator.clipboard.writeText(document.getElementById('markdownOutput').value);
+      e.target.textContent = 'Tersalin ✓';
+      setTimeout(() => e.target.textContent = 'Salin MD', 1500);
+    });
+
+    document.getElementById('btnDownloadMd').addEventListener('click', () => {
+      const content = document.getElementById('markdownOutput').value;
+      const filename = document.getElementById('convertedFileTitle').textContent || 'dokumen.md';
+      triggerDownloadBlob(new Blob([content], { type: 'text/markdown;charset=utf-8' }), filename);
+    });
+
+    document.getElementById('btnExportEditorDocx').addEventListener('click', () => {
+      const content = document.getElementById('markdownOutput').value;
+      const base = (document.getElementById('convertedFileTitle').textContent || 'dokumen').replace(/\.[^.]+$/, '');
+      exportMarkdownToWord(content, base);
+    });
+
+    document.getElementById('btnExportEditorXlsx').addEventListener('click', () => {
+      const content = document.getElementById('markdownOutput').value;
+      const base = (document.getElementById('convertedFileTitle').textContent || 'data').replace(/\.[^.]+$/, '');
+      exportMarkdownToExcel(content, base, false);
+    });
+
+    document.getElementById('btnExportEditorPdf').addEventListener('click', () => {
+      const content = document.getElementById('markdownOutput').value;
+      const base = (document.getElementById('convertedFileTitle').textContent || 'laporan').replace(/\.[^.]+$/, '');
+      exportMarkdownToPdf(content, base);
+    });
+
+    document.getElementById('markdownOutput').addEventListener('input', (e) => {
+      if (state.attachedDocs[state.activeDocIndex]) {
+        state.attachedDocs[state.activeDocIndex].markdown = e.target.value;
+        renderAttachedDocsUI();
+      }
+    });
+
+    document.getElementById('btnAttachToChat').addEventListener('click', () => {
+      if (state.attachedDocs[state.activeDocIndex]) {
+        state.attachedDocs[state.activeDocIndex].markdown = document.getElementById('markdownOutput').value;
+      }
+      renderAttachedDocsUI();
+      docDrawer.classList.add('translate-x-full');
+      promptInput.focus();
+    });
+
+    document.getElementById('btnDetachDoc').addEventListener('click', detachDocument);
+
+    document.querySelectorAll('.doc-quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (state.attachedDocs[state.activeDocIndex]) {
+          state.attachedDocs[state.activeDocIndex].markdown = document.getElementById('markdownOutput').value;
+        }
+        renderAttachedDocsUI();
+        if (btn.dataset.targetmodel) {
+          state.selectedModel = btn.dataset.targetmodel;
+          document.getElementById('modelSelect').value = btn.dataset.targetmodel;
+        }
+        docDrawer.classList.add('translate-x-full');
+        sendChatMessage(btn.dataset.docprompt);
+      });
+    });
+
+    // Accounts Modal & Pinokio Test
+    const accountsModal = document.getElementById('accountsModal');
+    document.getElementById('btnOpenAccounts').addEventListener('click', () => accountsModal.classList.remove('hidden'));
+    document.getElementById('btnCloseModal').addEventListener('click', () => accountsModal.classList.add('hidden'));
+
+    document.getElementById('btnTestPinokio').addEventListener('click', async (e) => {
+      const url = (document.getElementById('inputPinokioUrl').value || 'http://localhost:42000').replace(/\/$/, '');
+      e.target.textContent = 'Mengecek...';
+      try {
+        await fetch(url, { mode: 'no-cors' });
+        e.target.textContent = 'Terhubung ✓';
+      } catch {
+        e.target.textContent = 'Offline ✕';
+      }
+      setTimeout(() => e.target.textContent = 'Cek Lokal', 2000);
+    });
+
+    document.getElementById('btnSaveAccounts').addEventListener('click', () => {
+      state.timeoutMs = Number(document.getElementById('timeoutSelect').value);
+      state.keys.gemini = document.getElementById('inputGeminiKey').value.trim();
+      state.keys.groq = document.getElementById('inputGroqKey').value.trim();
+      state.keys.openrouter = document.getElementById('inputOpenRouterKey').value.trim();
+      state.keys.deepseek = document.getElementById('inputDeepSeekKey').value.trim();
+      state.keys.perplexity = document.getElementById('inputPerplexityKey').value.trim();
+      state.keys.fccMode = document.getElementById('fccModeSelect').value;
+      state.keys.fccKey = document.getElementById('inputFccKey').value.trim();
+      state.keys.pinokioUrl = document.getElementById('inputPinokioUrl').value.trim() || 'http://localhost:42000';
+      state.keys.ollamaUrl = document.getElementById('inputOllamaUrl').value.trim() || 'http://localhost:11434';
+      state.keys.ollamaModel = document.getElementById('inputOllamaModel').value.trim() || 'llama3.2';
+      state.keys.comfyUrl = document.getElementById('inputComfyUrl').value.trim() || 'http://127.0.0.1:8188';
+      state.keys.voiceUrl = document.getElementById('inputVoiceUrl').value.trim() || 'http://localhost:8880';
+      saveSettings();
+      accountsModal.classList.add('hidden');
+    });
+
+    // Clear & Export History
+    document.getElementById('btnClearChat').addEventListener('click', () => {
+      if (confirm('Hapus semua riwayat percakapan?')) {
+        state.messages = [];
+        saveHistory();
+        renderAllMessages();
+      }
+    });
+
+    document.getElementById('btnExportChat').addEventListener('click', () => {
+      triggerDownloadBlob(
+        new Blob([JSON.stringify(state.messages, null, 2)], { type: 'application/json' }),
+        `etoai-history-${new Date().toISOString().slice(0,10)}.json`
+      );
+    });
+
+    // Initialize
+    loadState();
+  </script>
+</body>
+</html>
